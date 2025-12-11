@@ -1,14 +1,13 @@
 from common.latex import macro,begin,end
 from common.string_ import newlines
 
-
-
 def bode(FT):
     # latex header
     out=[macro("documentclass","article","tikz")]
     out+=[macro("usepackage","amsmath")]
     out+=[macro("usepackage","circuitikz")]
     out+=[begin("document")]
+    out+=[FT.latex()]
     out+=[end("document")]
     return newlines(out)
 
@@ -659,10 +658,10 @@ def bode(FT):
 #    # -------------------------
 #    # données relatives à pgfplots (LaTeX)
 #    # -------------------------
-#    axis = gen_axis(fontsizelabel="large",fontsizetickslabel="normalsize")
+#    axis                     = gen_axis(fontsizelabel="large",fontsizetickslabel="normalsize")
 #    xtick, xticklabels, xint = gen_xtick_and_labels(puls)
-#    ytick_gain,yint_gain   = gen_ytick_and_labels(gain)
-#    ytick_phase,yint_phase  = gen_ytick_and_labels(phas)
+#    ytick_gain,yint_gain     = gen_ytick_and_labels(gain)
+#    ytick_phase,yint_phase   = gen_ytick_and_labels(phas)
 #    
 #    # -------------------------
 #    # Fichier de sortie LaTeX
