@@ -44,10 +44,10 @@ def bode(FT,**kwargs):
    Y1Bode=[] # GdB(Omega)
    Y2Bode=[] # Phi(Omega)
    for kg,gain in enumerate(gains):
-       response=FT.harm_response(w,gain)
+       _,_,module,arg=FT.harm_response(w,gain)
        XBode.append(w)
-       Y1Bode.append(nat2dB(response[2]))
-       Y2Bode.append(rad2deg(response[3]))
+       Y1Bode.append(nat2dB(module))
+       Y2Bode.append(rad2deg(arg))
    
    # matlplotlib instructions
    fig = plt.figure(figsize=(6,8),dpi=dpi)
