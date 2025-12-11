@@ -15,3 +15,14 @@ def dB2nat(dB)   : return 10**(dB/20)     # dB      -> naturel (gain)
 # relation de Black de la boucle de contre-réaction unitaire négative (negativ feedback)
 # -----------------------------------------------------------------------------
 def bo2bf(z)     : return z/(1+z)         # BO      -> BF
+
+def multiplicity(L):
+    multi=[]
+    for l in sorted(list(set(L))):
+        count=0
+        for e in L :
+            if e == l :
+                count+=1
+        multi.append((l,count))
+    return multi
+
