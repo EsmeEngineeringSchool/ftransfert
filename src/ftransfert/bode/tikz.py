@@ -1,4 +1,4 @@
-from common.latex import macro,begin,end
+from common.latex import beginmathdisplay,endmathdisplay,macro,begin,end
 from common.string_ import newlines
 
 def bode(FT):
@@ -7,7 +7,14 @@ def bode(FT):
     out+=[macro("usepackage","amsmath")]
     out+=[macro("usepackage","circuitikz")]
     out+=[begin("document")]
-    out+=[FT.latex()]
+    out+=[beginmathdisplay()]
+    out+=[FT.latex("p")]
+    out+=[endmathdisplay()]
+    out+=[macro("paragraph","Fonctions réelles du gain et du déphasage")]
+    out+=[FT.latex("module")]
+    out+=[FT.latex("moduledB")]
+    out+=[FT.latex("argument")]
+    out+=[macro("paragraph","Quelques valeurs particulières calculées")]
     out+=[end("document")]
     return newlines(out)
 
