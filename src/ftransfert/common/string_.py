@@ -8,25 +8,52 @@ def concatenate(lines):
 # -----------------------------------------------------------------
 def newlines(lines):
     return "\n".join(line for line in lines)
-
 # -----------------------------------------------------------------
 # retourne le signe d'un nombre +,- 
 # -----------------------------------------------------------------
 def signstr(number):
-    return "+" if number.real>0 else "-"
+    if abs(number) > 0 :
+        return "+" if number.real>0 else "-"
+    else:
+        return ""
 # -----------------------------------------------------------------
-# retourne la chaine du int de la valeur absolue des parties réelles et imaginaires
+# -----------------------------------------------------------------
+def absfrac(number,latex=False,imaginary=False):
+    n=abs(number)
+    num,den=n.as_integer_ratio()
+    j=f"{'j' if imaginary else ''}"
+    if num == 0 and imaginary :   return ""
+    if den > 1 :
+        if num == 1 and imaginary :   num,j="j",""
+        if latex :
+            return "\\dfrac{"f"{num}""}""{"f"{den}""}"f"{j}"
+        else:
+            return f"({num}/{den}){j}"
+    else:
+        if num == 1 and imaginary :   num,j="j",""
+        return f"{num}{j}"
+# -----------------------------------------------------------------
+# retourne la chaine de la fraction de la valeur absolue des parties réelles et imaginaires
 # si la partie imaginaire est égale à 1 on retourne simplement j
 # -----------------------------------------------------------------
-def strc(root):
-    return (str(int(abs(root.real))),'j') if abs(root.imag) == 1.0 else (str(int(abs(root.real))),str(int(abs(root.imag)))+'j')
+def strc(root,latex=False):
+    if abs(root.imag) > 0 :
+        return (absfrac(root.real,latex=latex),absfrac(root.imag,latex=latex,imaginary=True))
+    else:
+        return (absfrac(root.real,latex),'') 
 # -----------------------------------------------------------------
 # retourne la chaine de caractères du produit 
 # de toute les racines (poles ou zeros)
 # -----------------------------------------------------------------
-def strroot(roots):
+def strroot(roots,latex=False):
     out=''
     for root in roots:
-        r,i=strc(root)
-        out+=f"(p{signstr(-root.real)}{r}{signstr(-root.imag)}{i})"
+        r,i=strc(root,latex)
+        print(i)
+        out+="(" if not latex else "\\left("
+        if len(i) and latex : out+="\\left("
+        out+=f"p{signstr(-root.real)}{r}"
+        if len(i) and latex : out+="\\right)"
+        out+=f"{signstr(-root.imag)}{i}"
+        out+=")" if not latex else "\\right)"
     return out
