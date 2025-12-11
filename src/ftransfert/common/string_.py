@@ -1,3 +1,4 @@
+from fractions import Fraction
 # -----------------------------------------------------------------
 # join lines d'une liste
 # -----------------------------------------------------------------
@@ -20,7 +21,7 @@ def signstr(number):
 # -----------------------------------------------------------------
 def absfrac(number,latex=False,imaginary=False):
     n=abs(number)
-    num,den=n.as_integer_ratio()
+    num,den=Fraction(n).limit_denominator().as_integer_ratio()
     j=f"{'j' if imaginary else ''}"
     if num == 0 and imaginary :   return ""
     if den > 1 :
@@ -44,12 +45,12 @@ def strc(root,latex=False):
 # -----------------------------------------------------------------
 # retourne la chaine de caractères du produit 
 # de toute les racines (poles ou zeros)
+# (p-racine_1)(p-racine_2)...(p-racine_n)
 # -----------------------------------------------------------------
 def strroot(roots,latex=False):
     out=''
     for root in roots:
         r,i=strc(root,latex)
-        print(i)
         out+="(" if not latex else "\\left("
         if len(i) and latex : out+="\\left("
         out+=f"p{signstr(-root.real)}{r}"
@@ -57,3 +58,24 @@ def strroot(roots,latex=False):
         out+=f"{signstr(-root.imag)}{i}"
         out+=")" if not latex else "\\right)"
     return out
+# -----------------------------------------------------------------
+# retourne la chaine de caractères du polynome 
+# coeff_k p^k + -racine_1)(p-racine_2)...(p-racine_n)
+# -----------------------------------------------------------------
+def strpoly(poly,latex=False):
+    out=[]
+    for k,coeff in enumerate(poly):
+        expo=len(poly)-k-1
+        signcoeff=f"{signstr(coeff)}{abs(coeff)}"
+        match expo:
+            case 0:
+                strexpo=""
+                strcoeff=f"{signcoeff}"
+            case 1 :
+                strexpo=f"p"
+                strcoeff=f"{signcoeff if coeff != 1 else ''}"
+            case _ :
+                strexpo=f"p^{expo}"
+                strcoeff=f"{ signcoeff if coeff!=1 else ''}"
+        out+=[f"{strcoeff}{strexpo}"]
+    return "".join(out)
