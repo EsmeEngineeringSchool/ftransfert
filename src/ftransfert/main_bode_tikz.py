@@ -1,12 +1,12 @@
 from common.Ftransfert import Ftransfert
-from bode.tikz import bode
+from bode.tikz import bode as bodetikz
 
 if __name__ == "__main__" :
-    gain=1
-    num=lambda p : 1
-    den=lambda p : 1+p
-    H0=Ftransfert(num=num,den=den,gain=gain,name="H_0")
-    print(repr(H0))
-    print(str(H0))
-    print(H0.eval(1,1))
-    bode(H0)
+    with open("tmp.tex","w") as f:
+        if True :
+            gain=100
+            poles=[(-0.01,0),(-0.1,0),(-100,0)]
+            zeros=[(-1,0),(-1,0)]
+            H2=Ftransfert(zeros=zeros,poles=poles,gain=gain,name="H_2")
+            print(H2)
+            print(bodetikz(H2),file=f)
