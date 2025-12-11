@@ -2,12 +2,16 @@
 # join lines d'une liste
 # -----------------------------------------------------------------
 def concatenate(lines):
-    return "".join(line for line in lines)
+    return "".join(lines)
 # -----------------------------------------------------------------
 # applique \n à un ensemble de chaines dans une liste
 # -----------------------------------------------------------------
 def newlines(lines):
-    return "\n".join(line for line in lines)
+    return "\n".join(lines)
+def beginmathdisplay():
+    return "\["
+def endmathdisplay():
+    return "\]"
 # -----------------------------------------------------------------
 # retourne \macro{value}
 # -----------------------------------------------------------------
