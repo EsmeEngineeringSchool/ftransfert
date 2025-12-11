@@ -102,6 +102,11 @@ class Ftransfert():
                 k+=1
         return h.real,h.imag,mag,phase
     # ------------------------------------------------------------------------------
+    def latex(self):
+        if self.type == "function": return "FT defined with lambda functions no latex available"
+        return "\[\\boldsymbol{"f"{self.name}""(p)=\\dfrac{"f"{strroot(self.Czeros,latex=True)}""}{"f"{strroot(self.Cpoles,latex=True)}""}}\]"
+
+    # ------------------------------------------------------------------------------
     def __repr__(self):
         if self.type == "roots":
             return f'Ftranfert(zeros={self.zeros},poles={self.poles},gain={self.gain},name="{self.name}")'
@@ -114,7 +119,7 @@ class Ftransfert():
             F(p) = gain  ------------------------
                           (p-p1)(p-p2)(p-p3)...
         """
-        if self.type == "function": return "FT defined with lambda functions"
+        if self.type == "function": return "FT defined with lambda functions no str representation"
         outz=strroot(self.Czeros)
         outp=strroot(self.Cpoles)
         outname=self.name+'(p) = '
