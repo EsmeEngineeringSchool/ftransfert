@@ -8,8 +8,9 @@
 #    et PGF/Tikz
 #    Born Again d'un module du même nom des années 2019-2020 (qui était buggé!!).
 import numpy as np
-from .string_ import strroot,strpoly 
-from .utils import multiplicity, eval_poly
+import sympy as sp
+from .string_ import strroot, strpoly, signstr, newlines
+from .utils import multiplicity, eval_poly, eval_poly_symbol, nat2dB, rad2deg
 
 class Ftransfert():
     """
@@ -27,6 +28,7 @@ class Ftransfert():
         if num and den :
             assert isinstance(self.num,list) and isinstance(self.den,list) or callable(num) and callable(den),\
                    "num et den doivent être des listes (de coeff. polynomes) ou des fonctions (callable)" 
+        self.Czeros,self.Cpoles=[],[]
         if zeros:
             self.zeros=zeros
             self.Czeros=[complex(*zero) for zero in zeros]
@@ -53,24 +55,38 @@ class Ftransfert():
                 # classe 
                 self.classe=self.get_classe()
                 # intégrateurs
-                if len(poles)>0 : self.integrators = not all(self.Cpoles).real!=0
+                self.integrators= eval_poly(self.den,0.0) ==0.0
                 # zeros et poles
-                self.Czeros=np.roots(self.num)
-                self.Cpoles=np.roots(self.den)
+                #self.Czeros=np.roots(np.array(self.num,dtype=complex))
+                #self.Cpoles=np.roots(np.array(self.den,dtype=complex))
+                self.Czeros=[complex(x) for x in np.roots(self.num)]
+                self.Cpoles=[complex(x) for x in np.roots(self.den)]
                 # w_i (pulsations de ruptures)
-                non_zeros=[abs(z) for z in self.Czeros if abs(z)>0.0]+\
-                          [abs(p) for p in self.Cpoles if abs(p)>0.0]
-                self.w_i=multiplicity(non_zeros)
+                self.w_i=[]
+                non_zeros=[abs(z) for z in self.Czeros if abs(z)>0.0]
+                self.w_i+=multiplicity(non_zeros,1.0)
+                non_zeros=[abs(p) for p in self.Cpoles if abs(p)>0.0]
+                self.w_i+=multiplicity(non_zeros,-1.0)
             case "roots" :
                 # classe 
                 self.classe=classe
                 # intégrateurs
-                self.integrators= eval_poly(self.den,0.0) ==0.0
+                if len(poles)>0 : self.integrators = not all(self.Cpoles).real!=0
                 # w_i (pulsations de ruptures)
-                non_zeros=[abs(z) for z in self.Czeros if abs(z)>0.0]+\
-                          [abs(p) for p in self.Cpoles if abs(p)>0.0]
-                self.w_i=multiplicity(non_zeros)
+                self.w_i=[]
+                non_zeros=[abs(z) for z in self.Czeros if abs(z)>0.0]
+                self.w_i+=multiplicity(non_zeros,1.0)
+                non_zeros=[abs(p) for p in self.Cpoles if abs(p)>0.0]
+                self.w_i+=multiplicity(non_zeros,-1.0)
 
+        gnum,gden=1,1
+        for k,w in enumerate(self.w_i):
+            if w[1] < 0 :
+                gden*=w[0]
+            else:
+                gnum*=w[0]
+        self.gain_static=self.gain*gnum/gden
+        
         # ------------------------------
         # ENCORE UTILE ?
         # options for plotting phase
@@ -118,7 +134,7 @@ class Ftransfert():
     # retourne les parties réelles, imaginaires, le module et la phase de la
     # fonction de transfert complexe évaluée en w.
     # Un gain est donné en argument
-    def harm_response(self,w,gain):
+    def harmonic_response(self,w,gain):
         h,mag,phase=self.eval(w,gain)
         # wrapping matlab like ... il faut calculer la phase à partir de l'évaluation complète
         if self.phaseWrapping :
@@ -133,46 +149,125 @@ class Ftransfert():
         if self.type == "functions": return "FT defined with lambda functions no latex available"
         match key :
             case "p" :
-                return "\\boldsymbol{"f"{self.name}""(p)=\\dfrac{"\
-                                      f"{strroot(self.Czeros,latex=True)}""}{"\
-                                      f"{strroot(self.Cpoles,latex=True)}""}}"
-            case "module":
-                return ""
-            case "argument":
-                for k,w in enumerate(self.w_i):
-                    print(k,w)
-                return "\phi(\omega)=\\arg{H(\jw)}"
+                match self.type :
+                    case "roots":
+                        return "\\boldsymbol{"f"{self.name}""(p)="f"{self.gain}""\\dfrac{"\
+                                              f"{strroot(self.Czeros,latex=True)}""}{"\
+                                              f"{strroot(self.Cpoles,latex=True)}""}}"
+                    case "polys":
+                        return "\\boldsymbol{"f"{self.name}""(p)="f"{self.gain}""\\dfrac{"\
+                                              f"{strpoly(self.num,latex=True)}""}{"\
+                                              f"{strpoly(self.den,latex=True)}""}}"
             case "moduledB" :
-                return ""
-    # ------------------------------------------------------------------------------
-#    # --------------
-#    #    phi(w)
-#    # --------------
-#    eqn_phase_reel="$$\phi(\omega)=\\arg{H(\jw)}="
-#    if deriv_integ :
-#        eqn_phase_reel+=str(int(classe*90))
+                num,den="",""
+                i,d=self.classe
+                si=f"{20*i}\\log\omega" if i != 0 else ""
+                sd=f"{20*d}\\log\omega" if i != 0 else ""
+                den+=f"{si}"
+                num+=f"{sd}"
+                for k,w in enumerate(self.w_i):
+                    re="1+"
+                    im="\\left(\\frac{\omega}{\omega_"f"{k+1}""}\\right)^2"
+                    if w[1] < 0:
+                        den+="-10\\log{\\left("f"{re}{im}""\\right)}"
+                    else:
+                        num+="+10\\log{\\left("f"{re}{im}""\\right)}"
+
+                return "G_{dB}(\omega)="f"{20*np.log10(self.gain_static)}"f"{num}"f"{den}" 
+            case "module":
+                num,den="{","{"
+                if self.gain_static != 1 : num+=f"{int(self.gain_static)}""\\left("
+                if self.type == "polys" :
+                    w=sp.Symbol(r"\omega")
+                    num+=sp.latex(sp.simplify(eval_poly_symbol(self.num,w*sp.I).expand()),imaginary_unit="j")
+                    den+=sp.latex(sp.simplify(eval_poly_symbol(self.den,w*sp.I).expand()),imaginary_unit="j")
+                if self.type == "roots":
+                    i,d=self.classe
+                    powi=f"^{i}"       if i  > 1 else ""
+                    powd=f"^{d}"       if d  > 1 else ""
+                    si=f"\omega{powi}" if i != 0 else ""
+                    sd=f"\omega{powd}" if i != 0 else ""
+                    den+=f"{si}"
+                    num+=f"{sd}"
+                    for k,w in enumerate(self.w_i):
+                        re="1+"
+                        im="\\left(\\frac{\omega}{\omega_"f"{k+1}""}\\right)^2"
+                        if w[1] < 0 :
+                            den+="\sqrt{"f"{re}{im}""}"
+                        else :
+                            num+="\sqrt{"f"{re}{im}""}"
+                if self.gain_static != 1 : num+="\\right)"
+                num+="}"
+                den+="}"
+                return f"G(\omega)=|H(\jw)|=\dfrac{num}{den}"
+            case "argument":
+                i,d=self.classe
+                out="\phi(\omega)=\\arg{H(\jw)}="
+                if d-i != 0 :
+                    out+=f"{int((d-i)*90)}"
+                for k,w in enumerate(self.w_i):
+                    m=(int(w[1]) if abs(w[1]) !=1 else signstr(w[1]))
+                    out+=f"{m}""\\arctan{\\tau_"f"{k+1}""\omega}"
+                return out
+
+    def tablatex(self,**kwargs):
+        # Recast levels to new class
+        class nf(float):
+            def __repr__(self):
+                return f'{self:.3f}'
+        ws=kwargs.get('ws',None)
+        winput=isinstance(ws,np.ndarray)
+        wlim=kwargs.get('wlim', (1e-2,1e2))
+        n=kwargs.get('n',11)
+        # array of pulsations
+        if not winput :
+            ws=1j*np.logspace(np.log10(wlim[0]),np.log10(wlim[1]),n)
+        response=self.harmonic_response(ws,self.gain)
+        out=["\\begin{center}"]
+        out+=["\\begin{tabular}{ccc}"]
+        out+=["\\hline"]
+        out+=["$\omega$ (\si{\\radian\per\second}) & Gain (\si{\decibel}) & Phase (\si{\degree})\\\\"]
+        out+=["\\hline"]
+        for w,m,p in zip(ws,response[2],response[3]):
+            out+=[str(nf(abs(w)))+" & "+str(nf(nat2dB(m)))+" & "+str(nf(rad2deg(p)))+"\\\\"]
+            out+=["\\hline"]
+        out+=["\end{tabular}"]
+        out+=["\\end{center}"]
+        return newlines(out)
+
+## ========================================================== 
+##  Générer les tableaux LaTeX des données
+## ========================================================== 
+#def gen_tab(taus,puls,intpuls,w,deriv_integ,classe,gpw_particular):
+#   
+#    hline="\\hline\n"
+#    tab_tau_w=""
+#    tab_valeurs_particulieres="""
+#\\begin{center}
+#\\resizebox{0.6\\textwidth}{!}{%
+#"""
 #
-#    for k,tau in enumerate(taus) :
-#        if tau[1] != 0 :
-#            if abs(tau[1]) != 1 :
-#                if tau[1] > 0 :
-#                    eqn_phase_reel+="+"+str(int(tau[1]))+"\\arctan{\\tau_"+str(k+1)+"\omega}"
-#                else:
-#                    eqn_phase_reel+=str(int(tau[1]))+"\\arctan{\\tau_"+str(k+1)+"\omega}"
-#            else:
-#                if tau[1] > 0 :
-#                    eqn_phase_reel+="+\\arctan{\\tau_"+str(k+1)+"\omega}"
-#                else:
-#                    eqn_phase_reel+="-\\arctan{\\tau_"+str(k+1)+"\omega}"
+#    tabu_line="\\begin{tabular}{|M{3.0cm}"
+#    puls_line="Pulsation (\si{\\radian\per\second})"
+#    gain_line="Gain (\si{\decibel})"
+#    phas_line="Déphasage (\si{\degree})"
 #
-#    eqn_phase_reel+="$$\n"
+#    for gpw in gpw_particular:
+#        tabu_line+="|M{1.5cm}"
+#        if int(gpw[2]) == gpw[2] :
+#            puls_line+="&$10^{"+str(int(gpw[2]))+"}$"
+#        else:
+#            puls_line+="&"+str(round_sig(10**(gpw[2]),1))
+#
+#        gain_line+="&"+str(int(round(gpw[0])))
+#        phas_line+="&"+str(int(round(gpw[1])))
+
     #i,d # classe des intégrateurs et dérivateurs
     def get_classe(self):
         if self.type != "polys" : return 
         i = next((k for k, c in enumerate(reversed(self.den)) if c != 0.0), None)
         d = next((k for k, c in enumerate(reversed(self.num)) if c != 0.0), None)
         return i,d
-
 
     # n,m 
     def ordre(self):
@@ -191,15 +286,15 @@ class Ftransfert():
             print(52*'-')
             print(8*" "+"Infos")
             print(52*'-')
-            print("Système       :")
+            print(f"Système       (type:{self.type})")
             print(f"Gain                          : {self.gain}")
             if self.type == "functions" : return 
             i,d=self.classe
             print(f"nombre d'intégrateurs (i)     = {i}")
             print(f"nombre de dérivateurs (d)     = {d}")
             n,m=self.ordre()
-            print(f"ordre global  (n)             = {n}")
-            print(f"zeros         (m)             = {m}")
+            print(f"poles         (n)             = {n} {self.Cpoles}")
+            print(f"zeros         (m)             = {m} {self.Czeros}")
             print("m > n (non causal)") if m > n else print("m <= n (causal)")
             print()
             print( "Sous-systèmes                 : ")
