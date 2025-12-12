@@ -44,7 +44,7 @@ def bode(FT,**kwargs):
    Y1Bode=[] # GdB(Omega)
    Y2Bode=[] # Phi(Omega)
    for kg,gain in enumerate(gains):
-       _,_,module,arg=FT.harm_response(w,gain)
+       _,_,module,arg=FT.harmonic_response(w,gain)
        XBode.append(w)
        Y1Bode.append(nat2dB(module))
        Y2Bode.append(rad2deg(arg))
