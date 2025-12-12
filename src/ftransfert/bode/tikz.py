@@ -13,7 +13,9 @@ def bode(FT):
     out+=[macro("paragraph","Fonctions réelles du gain et du déphasage")]
     out+=[FT.latex("module")]
     out+=[FT.latex("moduledB")]
+    out+=[beginmathdisplay()]
     out+=[FT.latex("argument")]
+    out+=[endmathdisplay()]
     out+=[macro("paragraph","Quelques valeurs particulières calculées")]
     out+=[end("document")]
     return newlines(out)

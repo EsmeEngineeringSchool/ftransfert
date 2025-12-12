@@ -9,7 +9,7 @@
 #    Born Again d'un module du même nom des années 2019-2020 (qui était buggé!!).
 import numpy as np
 from .string_ import strroot,strpoly 
-from .utils import multiplicity
+from .utils import multiplicity, eval_poly
 
 class Ftransfert():
     """
@@ -17,7 +17,7 @@ class Ftransfert():
         Une FT est définie par ces zéros et pôles (self.type='roots') ou des fonctions (lambda) pour ses
         polynômes au numérateur et dénominateur (self.type='function').
     """
-    def __init__(self,zeros=None,poles=None,num=None,den=None,gain=1,title='',name="F",verbeux=1):
+    def __init__(self,zeros=None,poles=None,num=None,den=None,gain=1,classe=(0,0),title='',name="F",verbeux=1):
         self.gain=gain       # gain de la FT
         self.num=num         # polynôme au numérateur
         self.den=den         # polynôme au dénominateur
@@ -30,13 +30,9 @@ class Ftransfert():
         if zeros:
             self.zeros=zeros
             self.Czeros=[complex(*zero) for zero in zeros]
-        else:
-            self.zeros,self.Czeros=[],[]
         if poles:
             self.poles=poles
             self.Cpoles=[complex(*pole) for pole in poles]
-        else:
-            self.poles,self.Cpoles=[],[]
         # on vérifie si la FT est bien définie.
         # et on selectionne le type de la FT "functions" "roots" ou "polys"
         if len(self.Czeros) or len(self.Cpoles): self.type="roots"
@@ -44,32 +40,45 @@ class Ftransfert():
         if isinstance(num,list) : self.type="polys"
         assert len(self.type) ,f"aucun type de fonction de tranfert n'est selectionné {self.type}"  
 
+        match self.type :
+            case "functions":
+                # classe 
+                print(f"classe n'est pas accessible")
+                # intégrateurs
+                self.integrators= self.den(0.0) == 0.0
+                # w_i (pulsations de ruptures)
+                print("Pas possible pour l'instant d'obtenir les pulsations de ruptures à partir d'une fonction lambda")
+                self.w_i=None
+            case "polys" :
+                # classe 
+                self.classe=self.get_classe()
+                # intégrateurs
+                if len(poles)>0 : self.integrators = not all(self.Cpoles).real!=0
+                # zeros et poles
+                self.Czeros=np.roots(self.num)
+                self.Cpoles=np.roots(self.den)
+                # w_i (pulsations de ruptures)
+                non_zeros=[abs(z) for z in self.Czeros if abs(z)>0.0]+\
+                          [abs(p) for p in self.Cpoles if abs(p)>0.0]
+                self.w_i=multiplicity(non_zeros)
+            case "roots" :
+                # classe 
+                self.classe=classe
+                # intégrateurs
+                self.integrators= eval_poly(self.den,0.0) ==0.0
+                # w_i (pulsations de ruptures)
+                non_zeros=[abs(z) for z in self.Czeros if abs(z)>0.0]+\
+                          [abs(p) for p in self.Cpoles if abs(p)>0.0]
+                self.w_i=multiplicity(non_zeros)
+
+        # ------------------------------
+        # ENCORE UTILE ?
         # options for plotting phase
         self.phaseWrapping=False
         # riemann index,sign
         self.riemann=[0,-1]
+        # ------------------------------
 
-        # la FT présente-elle des intégrateurs ?
-        # deux tests selon le type de la
-        if self.type == "functions" :
-            self.integrators= self.den(0.0) == 0.0
-        elif self.type == "roots" :
-            if len(poles)>0 : self.integrators = not all(self.Cpoles).real!=0
-        # obtenir la liste des w_i
-        if self.type == "functions" :
-            print("Pas possible pour l'instant d'obtenir les pulsations de ruptures à partir d'une fonction lambda")
-            self.w_i=None
-        elif self.type == "roots" :
-            non_zeros=[abs(z) for z in self.Czeros if abs(z)>0.0]+\
-                      [abs(p) for p in self.Cpoles if abs(p)>0.0]
-            self.w_i=multiplicity(non_zeros)
-        elif self.type == "polys" :
-            print(f"polys -> z : {np.roots(self.num)}")
-            print(f"polys -> p : {np.roots(self.den)}")
-            non_zeros=[abs(z) for z in np.roots(self.num) if abs(z)>0.0]+\
-                      [abs(p) for p in np.roots(self.den) if abs(p)>0.0]
-            self.w_i=multiplicity(non_zeros)
-        print(f"W_i {self.w_i}")
     # ------------------------------------------------------------------------------
     def eval(self,p,gain=None):
         """
@@ -101,14 +110,7 @@ class Ftransfert():
                 h*=gain
                 return h,abs(h),phase
             case "polys" :
-                num=complex(0.0)
-                for k,c in enumerate(self.num):
-                    expo=len(self.num)-k-1
-                    num+=c*p**expo
-                den=complex(0.0)
-                for k,c in enumerate(self.den):
-                    expo=len(self.den)-k-1
-                    den+=c*p**expo
+                num,den=eval_poly(self.num,p),eval_poly(self.den,p)
                 h=gain*num/den
                 return h,np.abs(h),np.angle(h)
 
@@ -135,12 +137,14 @@ class Ftransfert():
                                       f"{strroot(self.Czeros,latex=True)}""}{"\
                                       f"{strroot(self.Cpoles,latex=True)}""}}"
             case "module":
-                return "\phi(\omega)=\\arg{H(\jw)}"
-            case "argument":
                 return ""
+            case "argument":
+                for k,w in enumerate(self.w_i):
+                    print(k,w)
+                return "\phi(\omega)=\\arg{H(\jw)}"
             case "moduledB" :
                 return ""
-                
+    # ------------------------------------------------------------------------------
 #    # --------------
 #    #    phi(w)
 #    # --------------
@@ -162,24 +166,22 @@ class Ftransfert():
 #                    eqn_phase_reel+="-\\arctan{\\tau_"+str(k+1)+"\omega}"
 #
 #    eqn_phase_reel+="$$\n"
-    def classe(self):
-        match self.type :
-            case "polys":
-                for k,c in enumerate(self.den[::-1]):
-                    if c != 0.0 :
-                        return k
-            case "roots":
-                for p in self.poles:
-                    pass
+    #i,d # classe des intégrateurs et dérivateurs
+    def get_classe(self):
+        if self.type != "polys" : return 
+        i = next((k for k, c in enumerate(reversed(self.den)) if c != 0.0), None)
+        d = next((k for k, c in enumerate(reversed(self.num)) if c != 0.0), None)
+        return i,d
 
 
+    # n,m 
     def ordre(self):
         match self.type :
             case "polys":
-                return len(self.den),len(self.num)
+                return len(self.den)-1,len(self.num)-1
             case "roots":
-                a=[abs(z) for z in self.Czeros if abs(z)>0.0]
-                return 0,0
+                i,d=self.classe
+                return len(self.Cpoles)+i,len(self.Czeros)+i
             case _:
                 print("Impossible de déterminer l'ordre du polynome")
                 return None,None
@@ -192,16 +194,18 @@ class Ftransfert():
             print("Système       :")
             print(f"Gain                          : {self.gain}")
             if self.type == "functions" : return 
-            print(f"classe                        = {self.classe()}")
+            i,d=self.classe
+            print(f"nombre d'intégrateurs (i)     = {i}")
+            print(f"nombre de dérivateurs (d)     = {d}")
             n,m=self.ordre()
             print(f"ordre global  (n)             = {n}")
             print(f"zeros         (m)             = {m}")
             print("m > n (non causal)") if m > n else print("m <= n (causal)")
             print()
-            print("Sous-systèmes                  : ")
-            print(f"tau/ordre                      : {self.w_i}")
-            #print("intervalles pulsations         : ",intpuls)
-            #print("valeurs particulières (calcul) : ",omegas)
+            print( "Sous-systèmes                 : ")
+            print(f"pulsations, multiplicité      : {', '.join(f'({w:5.2f}, {m})' for w, m in self.w_i)}")
+            #print("intervalles pulsations        : ",intpuls)
+            #print("valeurs particulières (calcul): ",omegas)
             print()
 
 

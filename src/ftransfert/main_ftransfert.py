@@ -11,7 +11,7 @@ if __name__ == "__main__" :
         print(repr(H0))
         print(str(H0.latex()))
         print(H0.eval(1,1))
-    if True:
+    if False:
         # H_1
         gain=4
         poles=[]
@@ -45,18 +45,18 @@ if __name__ == "__main__" :
         poles=[(-0.01,0),(-0.1,0),(-100,0)]
         zeros=[(-1,0),(-1,0)]
         H2=Ftransfert(zeros=zeros,poles=poles,gain=gain,name="H_2")
-        print(H2)
-        print(H2.eval(1j))
+        print(f"str : {H2}")
+        print(f"H2(1j) = {H2.eval(1j)}")
         H2.info()
         num=lambda p:(p+1)**2
         den=lambda p: (p+100)*(p+0.1)*(p+0.01)
         H2=Ftransfert(num=num,den=den,gain=gain,name="H_2")
-        print(H2)
-        print(H2.eval(1j))
+        print(f"str : {H2}")
+        print(f"H2(1j) = {H2.eval(1j)}")
         H2.info()
         num=[1,2,1]  #p**2+2p+1 
         den=[1,100.11,11.001,0.1]  #p**3+100.11*p**2+11.001*p+0.1
         H2=Ftransfert(num=num,den=den,gain=gain,name="H_2")
-        print(H2)
-        print(H2.eval(1j))
+        print(f"str : {H2}")
+        print(f"H2(1j) = {H2.eval(1j)}")
         H2.info()
