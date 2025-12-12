@@ -1,0 +1,148 @@
+\documentclass[10pt,a4paper]{article} %twocolumn
+\listfiles
+\usepackage[francais]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+
+
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{siunitx}
+\usepackage{siunitxfmv}
+
+
+\usepackage{tabularx,booktabs}
+\usepackage{geometry}
+\geometry{hmargin=2.5cm,vmargin=2.2cm}
+
+\newcolumntype{K}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+\newcolumntype{N}{@{}m{0pt}@{}}
+
+
+\usepackage{tdexoq}
+
+\usepackage{url}
+\usepackage{listings}
+\usepackage{mymath}
+\usepackage{bode_diagram}
+\usepackage{graphicx,wrapfig}
+
+
+\usepackage{pgf, tikz}
+\usepackage{pgfplots}
+\usetikzlibrary{babel}
+\usetikzlibrary{quotes,angles}
+\usetikzlibrary{arrows}
+\usetikzlibrary{calc}
+\tikzstyle{arrow}=[draw, -latex] 
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\title{\textsc{SPE-{S3} -- Systèmes Mécaniques et Automatiques}\\
+\emph{TD 8 -- Réponse harmonique -- Diagramme de Bode -- \\ Second ordre : phénomène de résonance} \textbf{(Corrigé)}}
+\author{ESME Sudria -- Décembre 2019}        
+\date{}%L3 Info -- printemps 2012--2013}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\maketitle
+
+\thispagestyle{empty}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+$$
+\boldsymbol{H(p)=\dfrac{(p+1)}{p^2(1+0.3p+p^2)}}
+$$
+%avec $\xi=0.15$
+
+\paragraph{Recherche des asymptotes}
+\begin{itemize}
+\item $\textrm{gain statique : } K=1      \rightarrow 
+      \textrm{toute fréquence}           \rightarrow 
+      \textrm{0 dB à basse fréquence}   \rightarrow 
+      \textrm{pas d'effet sur la phase}$
+  \item $\textrm{2nd ordre } \rightarrow 
+      \omega_1=\SI{1}{\radian\per\second}             \rightarrow 
+      \textrm{pente du gain : } \SI[per-mode=symbol]{-40}{\dB\per\dec}  \rightarrow 
+      \phi\mathrel{+}=-180\si{\degree}$ 
+\end{itemize}
+\begin{center}
+\begin{tikzpicture}[trim axis left]
+\begin{axis}[
+    ticklabel style = {font=\footnotesize},
+    width=0.9\textwidth,
+    height=0.22\textheight,
+    ylabel={Gain (\si{\decibel})},
+    xtick={1e-2,1e-1,1,1e1,1e2},
+    xticklabels={$10^{-2}$,$10^{-1}$,$10^{0}$,$10^{1}$,$10^{2}$},
+    ytick={-80,-60,-40,-20,0,20,40,60,80},
+    yticklabels={-80,-60,-40,-20,0,20,40,60,80},
+    xmode=log,ymode=normal,
+    xmin=1e-2, xmax=1e2,
+    ymin=-80, ymax=80,
+    grid=both,
+    major grid style={black!40}]
+
+    \pgfmathsetmacro{\xi}{0.15}
+    \pgfmathsetmacro{\txi}{2*\xi}
+    \pgfmathsetmacro{\wz}{1}
+    \pgfmathsetmacro{\K}{1}
+    \addplot[ultra thick,blue,domain=1e-2:1e2,samples=201] 
+    {20*log10(1+x^2)+20*log10(\K*\wz^2)-10*log10((\wz^2-x^2)^2+(\txi*x)^2)-40*log10(x)};
+%    \addplot[line width=2pt,red,dashed,domain=1e-2:1e0, samples=51] {0};
+    \addplot[line width=2pt,red,dashed,domain=1e-2:1e2, samples=51] {-40*log10(x)};
+    \draw[draw=none,fill=blue] (axis cs:0.5,2.32) circle (2pt);
+    \draw[draw=none,fill=blue] (axis cs:1,10.45) circle (2pt);
+    \draw[draw=none,fill=blue] (axis cs:2,-9.7) circle (2pt);
+    %0.5 2.328441339178196 -11.309932474020213
+    %1 10.457574905606752 -90.0
+    %2 -9.712758487381052 -168.6900675259798
+\end{axis}
+\end{tikzpicture}
+
+\begin{tikzpicture}[trim axis left]
+\begin{axis}[
+    ticklabel style = {font=\footnotesize},
+    width=0.9\textwidth,
+    height=0.22\textheight,
+    xlabel={Pulsation (\si{\radian\per\second})},
+    ylabel={Phase (\si{degree})},
+    ytick={-360,-330,-300,-270,-240,-210,-180},
+    yticklabels={-360,-330,-300,-270,-240,-210,-180},
+    xtick={1e-2,1e-1,1,1e1,1e2},
+    xticklabels={$10^{-2}$,$10^{-1}$,$10^{0}$,$10^{1}$,$10^{2}$},
+    xmode=log,ymode=normal,
+    xmin=1e-2, xmax=1e2,
+    ymin=-300, ymax=-160,
+    grid=both,
+    major grid style={black!40}
+]
+    \pgfmathsetmacro{\xi}{0.15}
+    \pgfmathsetmacro{\txi}{2*\xi}
+    \pgfmathsetmacro{\wz}{1}
+    \addplot[ultra thick, blue,domain=1e-3:1e3, samples=201] {atan2(x,1)-atan2(\txi*x*\wz,\wz^2-x^2)-2*atan2(x,0)};
+    \addplot[line width=2pt,red,dashed,domain=1e-2:1e0, samples=51] {-180};
+    \addplot[line width=2pt,red,dashed,domain=1e0:1e2, samples=51] {-270};
+    \draw[line width=2pt,red,dashed] (axis cs:1,-180)  -- (axis cs:1,-270);
+%    \draw[draw=none,fill=blue] (axis cs:0.5,-11.3) circle (2pt);
+%    \draw[draw=none,fill=blue] (axis cs:1,-90) circle (2pt);
+%    \draw[draw=none,fill=blue] (axis cs:2,-168) circle (2pt);
+    %0.5 2.328441339178196 -11.309932474020213
+    %1 10.457574905606752 -90.0
+    %2 -9.712758487381052 -168.6900675259798
+\end{axis}
+\end{tikzpicture}
+\end{center}
+
+\end{document}
+

@@ -1,0 +1,79 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Fichier généré par gentex.py !
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{article}
+\usepackage[francais]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{pgf,tikz}
+\usepackage{pgfplots}
+\usepackage{siunitx}
+\usepackage{geometry}
+\usepackage{mymath}
+\geometry{
+paperwidth=21cm,
+paperheight=29.7cm,
+margin=1cm
+}
+\begin{document}
+\thispagestyle{empty}
+$$\boldsymbol{H(p)=\dfrac{10(p+1)}{(1000p+1)}}$$
+\begin{center}
+\begin{tikzpicture}[trim axis left]
+\begin{axis}
+[ticklabel style = {font=\normalsize},
+width=0.9\textwidth,
+height=0.25\textheight,
+grid=both,
+major grid style={black!40},
+label style={font=\large},
+xmode=log,ymode=normal,ylabel={Gain (\si{\decibel})},
+xtick={1e-8,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4,1e5,1e6,1e7,1e8},
+ytick={-49.0,-39.25,-29.5,-19.75,-10.0,-0.25,9.5,19.25,29.0},
+xticklabels={$10^{-8}$,$10^{-7}$,$10^{-6}$,$10^{-5}$,$10^{-4}$,$10^{-3}$,$10^{-2}$,$10^{-1}$,$10^{0}$,$10^{1}$,$10^{2}$,$10^{3}$,$10^{4}$,$10^{5}$,$10^{6}$,$10^{7}$,$10^{8}$},
+ytick={-49.0,-39.25,-29.5,-19.75,-10.0,-0.25,9.5,19.25,29.0},
+xmin=1e-8,xmax=1e8,
+ymin=-49.0,ymax=29.0
+]
+\addplot[ultra thick, blue,domain=1e-8:1e8, samples=201] {20-10*log10(1+1000000*x*x)+10*log10(1+1*x*x)};
+\addplot[line width=2pt,red,dashed,domain=1e-8:1e-3, samples=51] {20.0+0.0*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=1e-3:1e0, samples=51] {-40.0+-20.0*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=1e0:1e8, samples=51] {-40.0+0.0*log10(x)};
+\end{axis}
+\end{tikzpicture}
+
+\begin{tikzpicture}[trim axis left]
+\begin{axis}
+[ticklabel style = {font=\normalsize},
+width=0.9\textwidth,
+height=0.25\textheight,
+grid=both,
+major grid style={black!40},
+label style={font=\large},
+xmode=log,ymode=normal,xlabel={Pulsation (\si{\radian\per\second})},
+ylabel={Phase (\si{degree})},
+xtick={1e-8,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4,1e5,1e6,1e7,1e8},
+ytick={-100.0,-85.875,-71.75,-57.625,-43.5,-29.375,-15.25,-1.125,13.0},
+xticklabels={$10^{-8}$,$10^{-7}$,$10^{-6}$,$10^{-5}$,$10^{-4}$,$10^{-3}$,$10^{-2}$,$10^{-1}$,$10^{0}$,$10^{1}$,$10^{2}$,$10^{3}$,$10^{4}$,$10^{5}$,$10^{6}$,$10^{7}$,$10^{8}$},
+ytick={-100.0,-85.875,-71.75,-57.625,-43.5,-29.375,-15.25,-1.125,13.0},
+xmin=1e-8,xmax=1e8,
+ymin=-100.0,ymax=13.0
+]
+\addplot[ultra thick, blue,domain=1e-8:1e8, samples=201] {-1*atan2(1000*x,1)+1*atan2(1*x,1)};
+\addplot[line width=2pt,red,dashed,domain=1e-8:1e-3, samples=51] {0.0};
+\draw[line width=2pt,red,dashed] (axis cs:1e-3,0.0)  -- (axis cs:1e-3,-90.0);
+\addplot[line width=2pt,red,dashed,domain=1e-3:1e0, samples=51] {-90.0};
+\draw[line width=2pt,red,dashed] (axis cs:1e0,-90.0)  -- (axis cs:1e0,0.0);
+\addplot[line width=2pt,red,dashed,domain=1e0:1e8, samples=51] {0.0};
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\paragraph{Fonctions réelles du gain et du déphasage}
+$$G(\omega)=|H(\jw)|$$
+$$\phi(\omega)=\arg{H(\jw)}$$
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,139 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Fichier généré par gentex.py !
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{article}
+\usepackage[francais]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{pgf,tikz}
+\usepackage{pgfplots}
+\usepackage{siunitx}
+\usepackage{geometry}
+\usepackage{mymath}
+\geometry{
+paperwidth=21cm,
+paperheight=29.7cm,
+margin=1cm
+}
+\usepackage{tabularx}
+\newcolumntype{K}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+\newcolumntype{N}{@{}m{0pt}@{}}
+\begin{document}
+\thispagestyle{empty}
+$$\boldsymbol{H(p)=\dfrac{(100p+1)(0.1p+1)^{3}(0.001p+1)^{3}}{(10p+1)(p+1)^{3}(0.01p+1)(0.0001p+1)^{3}(1e-05p+1)^{3}}}$$
+\begin{center}
+\begin{tikzpicture}[trim axis left]
+\begin{axis}
+[ticklabel style = {font=\normalsize},
+width=0.9\textwidth,
+height=0.25\textheight,
+grid=both,
+major grid style={black!40},
+label style={font=\large},
+xmode=log,ymode=normal,ylabel={Gain (\si{\decibel})},
+xtick={1e-8,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4,1e5,1e6,1e7,1e8},
+ytick={-302.0,-256.625,-211.25,-165.875,-120.5,-75.125,-29.75,15.625,61.0},
+xticklabels={$10^{-8}$,$10^{-7}$,$10^{-6}$,$10^{-5}$,$10^{-4}$,$10^{-3}$,$10^{-2}$,$10^{-1}$,$10^{0}$,$10^{1}$,$10^{2}$,$10^{3}$,$10^{4}$,$10^{5}$,$10^{6}$,$10^{7}$,$10^{8}$},
+ytick={-302.0,-256.625,-211.25,-165.875,-120.5,-75.125,-29.75,15.625,61.0},
+xmin=1e-8,xmax=1e8,
+ymin=-302.0,ymax=61.0
+]
+\addplot[ultra thick, blue,domain=1e-8:1e8, samples=201] {0+10*log10(1+10000*x*x)-10*log10(1+100*x*x)-30*log10(1+1*x*x)+30*log10(1+0.010000000000000002*x*x)-10*log10(1+0.0001*x*x)+30*log10(1+1e-06*x*x)-30*log10(1+1e-08*x*x)-30*log10(1+1.0000000000000002e-10*x*x)};
+\addplot[line width=2pt,red,dashed,domain=1e-8:1e-2, samples=51] {0.0+0.0*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=1e-2:1e-1, samples=51] {40.0+20.0*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=1e-1:1e0, samples=51] {20.0+0.0*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=1e0:1e1, samples=51] {20.0+-60.0*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=1e1:1e2, samples=51] {-40.0+0.0*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=1e2:1e3, samples=51] {0.0+-20.0*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=1e3:1e4, samples=51] {-180.0+40.0*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=1e4:1e5, samples=51] {60.0+-20.0*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=1e5:1e8, samples=51] {360.0+-80.0*log10(x)};
+\draw[draw=none,fill=blue] (axis cs:0.001,0.042766566096805944) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:0.01,2.9657963871957236) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:0.1,16.904571172043) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:1,11.055540502970132) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:10,-31.141095352022656) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:100,-42.75364049463415) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:1000,-51.141968153209376) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:10000,-29.031321244578447) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:100000,-49.15924247905436) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:1000000,-120.13093104509684) circle (2pt);
+\end{axis}
+\end{tikzpicture}
+
+\begin{tikzpicture}[trim axis left]
+\begin{axis}
+[ticklabel style = {font=\normalsize},
+width=0.9\textwidth,
+height=0.25\textheight,
+grid=both,
+major grid style={black!40},
+label style={font=\large},
+xmode=log,ymode=normal,xlabel={Pulsation (\si{\radian\per\second})},
+ylabel={Phase (\si{degree})},
+xtick={1e-8,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4,1e5,1e6,1e7,1e8},
+ytick={-425.0,-354.875,-284.75,-214.625,-144.5,-74.375,-4.25,65.875,136.0},
+xticklabels={$10^{-8}$,$10^{-7}$,$10^{-6}$,$10^{-5}$,$10^{-4}$,$10^{-3}$,$10^{-2}$,$10^{-1}$,$10^{0}$,$10^{1}$,$10^{2}$,$10^{3}$,$10^{4}$,$10^{5}$,$10^{6}$,$10^{7}$,$10^{8}$},
+ytick={-425.0,-354.875,-284.75,-214.625,-144.5,-74.375,-4.25,65.875,136.0},
+xmin=1e-8,xmax=1e8,
+ymin=-425.0,ymax=136.0
+]
+\addplot[ultra thick, blue,domain=1e-8:1e8, samples=201] {+1*atan2(100*x,1)-1*atan2(10*x,1)-3*atan2(1*x,1)+3*atan2(0.1*x,1)-1*atan2(0.01*x,1)+3*atan2(0.001*x,1)-3*atan2(0.0001*x,1)-3*atan2(1e-05*x,1)};
+\addplot[line width=2pt,red,dashed,domain=1e-8:1e-2, samples=51] {0.0};
+\draw[line width=2pt,red,dashed] (axis cs:1e-2,0.0)  -- (axis cs:1e-2,90.0);
+\addplot[line width=2pt,red,dashed,domain=1e-2:1e-1, samples=51] {90.0};
+\draw[line width=2pt,red,dashed] (axis cs:1e-1,90.0)  -- (axis cs:1e-1,0.0);
+\addplot[line width=2pt,red,dashed,domain=1e-1:1e0, samples=51] {0.0};
+\draw[line width=2pt,red,dashed] (axis cs:1e0,0.0)  -- (axis cs:1e0,-270.0);
+\addplot[line width=2pt,red,dashed,domain=1e0:1e1, samples=51] {-270.0};
+\draw[line width=2pt,red,dashed] (axis cs:1e1,-270.0)  -- (axis cs:1e1,0.0);
+\addplot[line width=2pt,red,dashed,domain=1e1:1e2, samples=51] {0.0};
+\draw[line width=2pt,red,dashed] (axis cs:1e2,0.0)  -- (axis cs:1e2,-90.0);
+\addplot[line width=2pt,red,dashed,domain=1e2:1e3, samples=51] {-90.0};
+\draw[line width=2pt,red,dashed] (axis cs:1e3,-90.0)  -- (axis cs:1e3,180.0);
+\addplot[line width=2pt,red,dashed,domain=1e3:1e4, samples=51] {180.0};
+\draw[line width=2pt,red,dashed] (axis cs:1e4,180.0)  -- (axis cs:1e4,-90.0);
+\addplot[line width=2pt,red,dashed,domain=1e4:1e5, samples=51] {-90.0};
+\draw[line width=2pt,red,dashed] (axis cs:1e5,-90.0)  -- (axis cs:1e5,-360.0);
+\addplot[line width=2pt,red,dashed,domain=1e5:1e8, samples=51] {-360.0};
+\draw[draw=none,fill=blue] (axis cs:0.001,4.982535914305473) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:0.01,37.73827827007413) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:0.1,23.83444575571015) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:1,-113.15052517130684) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:10,-121.53343070972146) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:100,-45.12032109876119) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:1000,30.318225440280393) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:10000,11.155196987254381) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:100000,-209.5451592143467) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:1000000,-341.31710402718863) circle (2pt);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\paragraph{Fonctions réelles du gain et du déphasage}
+$$G(\omega)=|H(\jw)|=\dfrac{\sqrt{1+\tau_1^2\omega^2}\left(1+\tau_4^2\omega^2\right)^{\frac{3}{2}}\left(1+\tau_6^2\omega^2\right)^{\frac{3}{2}}}{\sqrt{1+\tau_2^2\omega^2}\left(1+\tau_3^2\omega^2\right)^{\frac{3}{2}}\sqrt{1+\tau_5^2\omega^2}\left(1+\tau_7^2\omega^2\right)^{\frac{3}{2}}\left(1+\tau_8^2\omega^2\right)^{\frac{3}{2}}}$$
+$$G_{dB}(\omega)=+10\log{(1+\tau_1^2\omega^2)}-10\log{(1+\tau_2^2\omega^2)}-30\log{(1+\tau_3^2\omega^2)}+30\log{(1+\tau_4^2\omega^2)}-10\log{(1+\tau_5^2\omega^2)}+30\log{(1+\tau_6^2\omega^2)}-30\log{(1+\tau_7^2\omega^2)}-30\log{(1+\tau_8^2\omega^2)}$$
+$$\phi(\omega)=\arg{H(\jw)}=+\arctan{\tau_1\omega}-\arctan{\tau_2\omega}-3\arctan{\tau_3\omega}+3\arctan{\tau_4\omega}-\arctan{\tau_5\omega}+3\arctan{\tau_6\omega}-3\arctan{\tau_7\omega}-3\arctan{\tau_8\omega}$$
+\paragraph{Quelques valeurs particulières (calculées) :}
+
+\begin{center}
+\resizebox{0.95\textwidth}{!}{%
+\begin{tabular}{|M{3cm}|M{2cm}|M{2cm}|M{2cm}|M{2cm}|M{2cm}|M{2cm}|M{2cm}|M{2cm}|M{2cm}|M{2cm}|N}
+\hline
+Pulsation (\si{\radian\per\second})&$10^{-3}$&$10^{-2}$&$10^{-1}$&$10^{0}$&$10^{1}$&$10^{2}$&$10^{3}$&$10^{4}$&$10^{5}$&$10^{6}$& \\[1em] 
+\hline
+Gain (\si{\decibel})&0&3&17&11&-31&-43&-51&-29&-49&-120& \\[1em] 
+\hline
+Déphasage (\si{\degree})&5&38&24&-113&-122&-45&30&11&-210&-341& \\[1em] 
+
+    \hline
+\end{tabular}%
+}
+\end{center}
+\paragraph{Commande pour reproduire ce fichier :}
+\begin{verbatim}bodePGFtikz.py --taus [(100, 1), (10, -1), (1, -3), (0.1, 3), (0.01, -1), (0.001, 3), (0.0001, -3), (1e-05, -3)]--axis estimation\end{verbatim}\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

@@ -1,0 +1,91 @@
+% mymath package
+% 
+% (c) Filipe Vasconcelos
+%
+%% This program can be redistributed and/or modified under the terms
+%% of the LaTeX Project Public License Distributed from CTAN archives
+%% in directory macros/latex/base/lppl.txt.
+% 
+\NeedsTeXFormat{LaTeX2e}[1994/06/01]
+\ProvidesPackage{mymath}
+  [2017/07/11 v0.01 LaTeX package pour différentes expressions mathématiques]
+\RequirePackage{xargs}
+\RequirePackage{tikz}
+\def\hi{Ce paquet definit differents symboles mathématiques.}
+\let\myDate\date
+
+%texte en gras
+\newcommand*{\tbf}[1]{\textbf{#1}}
+
+%chap6 du cours d'auto
+\newcommand*{\hmm}[2]{
+    {\tikzset{external/export=false}
+          \tikz[overlay, 
+                remember picture,
+                baseline=-\the\dimexpr\fontdimen22\textfont2\relax
+                ] 
+          \node[rectangle,
+                inner sep=1pt,
+                rounded corners,
+                draw,
+                #2,
+                thick,
+                text=black
+                ] {$#1$};
+            }
+} 
+
+% Laplace 
+\newcommand*{\laplace}[1]{\mathscr{L}\left\{#1\right\}}
+\newcommand*{\laplacei}[1]{\mathscr{L}^{-1}\left\{#1\right\}}
+\newcommand*{\rttensor}[1]{\overline{\overline{#1}}}
+
+% j omega
+\newcommand*{\jw}{j\omega}
+\newcommand*{\jtw}{j\tau\omega}
+\newcommand*{\tw}{\tau\omega}
+
+\renewcommand{\Re}[1]{\mathrm{Re}[#1]}
+\renewcommand{\Im}[1]{\mathrm{Im}[#1]}
+
+% d droit dérivée
+\newcommand*{\dd}[1]{\mathrm{d}{#1}}
+\newcommand*{\devi}[2]{\dfrac{\mathrm{d}^{#2}{#1}}{\dd{t^{#2}}}}
+\newcommand*{\deviV}[3]{\left[\devi{#1}{#2}\right]_{#3}}
+
+% dot angle
+\newcommand*{\dlambda}{\dot{\lambda}}
+\newcommand*{\dalpha}{\dot{\alpha}}
+\newcommand*{\dtheta}{\dot{\theta}}
+\newcommand*{\dphi}{\dot{\phi}}
+\newcommand*{\dbeta}{\dot{\beta}}
+\newcommand*{\dpsi}{\dot{\psi}}
+% ddot angle
+\newcommand*{\ddalpha}{\ddot{\alpha}}
+\newcommand*{\ddtheta}{\ddot{\theta}}
+\newcommand*{\ddphi}{\ddot{\phi}}
+\newcommand*{\ddbeta}{\ddot{\beta}}
+%\newcommand*{\ddpsi}{\ddot{\psi}}
+
+%creer un vecteur du type \xx{_1}
+\newcommandx{\ccvect}[2][2=]{%
+    \csname #1#1\endcsname{#2}%
+}
+
+%créer un angle à partir de son nom
+\newcommand{\cang}[2]{%
+\csname #1\endcsname_{#2}%
+}
+
+\newcommand{\ccent}[2]{%
+#1$_{#2}$%
+}
+
+\newcommand{\ccentm}[2]{%
+\text{#1}_{#2}%
+}  
+
+\endinput
+
+%%
+%% End of file `mymath.sty'.

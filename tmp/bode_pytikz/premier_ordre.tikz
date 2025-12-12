@@ -1,0 +1,51 @@
+\begin{tikzpicture}[trim axis left]
+\begin{axis}
+[ticklabel style = {font=\normalsize},
+width=0.9\textwidth,
+height=0.25\textheight,
+grid=both,
+major grid style={black!40},
+label style={font=\large},
+xmode=log,ymode=normal,ylabel={Gain (\si{\decibel})},
+xtick={1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4},
+ytick={-60.0,-50.0,-40.0,-30.0,-20.0,-10.0,0.0,10.0,20.0},
+xticklabels={$10^{-4}$,$10^{-3}$,$10^{-2}$,$10^{-1}$,$10^{0}$,$10^{1}$,$10^{2}$,$10^{3}$,$10^{4}$},
+ytick={-60.0,-50.0,-40.0,-30.0,-20.0,-10.0,0.0,10.0,20.0},
+xmin=1e-4,xmax=1e4,
+ymin=-60.0,ymax=20.0
+]
+\addplot[ultra thick, blue,domain=1e-4:1e4, samples=201] {0-10*log10(1+1.0*x*x)};
+\addplot[line width=2pt,red,dashed,domain=1e-4:1e0, samples=51] {0.0+0.0*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=1e0:1e4, samples=51] {0.0+-20.0*log10(x)};
+\draw[draw=none,fill=blue] (axis cs:0.1,-0.043213737826425784) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:1,-3.010299956639812) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:10,-20.043213737826427) circle (2pt);
+\end{axis}
+\end{tikzpicture}
+
+\begin{tikzpicture}[trim axis left]
+\begin{axis}
+[ticklabel style = {font=\normalsize},
+width=0.9\textwidth,
+height=0.25\textheight,
+grid=both,
+major grid style={black!40},
+label style={font=\large},
+xmode=log,ymode=normal,xlabel={Pulsation (\si{\radian\per\second})},
+ylabel={Phase (\si{degree})},
+xtick={1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4},
+ytick={-90.0,-75.0,-60.0,-45.0,-30.0,-15.0,0.0},
+xticklabels={$10^{-4}$,$10^{-3}$,$10^{-2}$,$10^{-1}$,$10^{0}$,$10^{1}$,$10^{2}$,$10^{3}$,$10^{4}$},
+ytick={-90.0,-75.0,-60.0,-45.0,-30.0,-15.0,0.0},
+xmin=1e-4,xmax=1e4,
+ymin=-90.0,ymax=0.0
+]
+\addplot[ultra thick, blue,domain=1e-4:1e4, samples=201] {-1*atan2(1.0*x,1)};
+\addplot[line width=2pt,red,dashed,domain=1e-4:1e0, samples=51] {0.0};
+\draw[line width=2pt,red,dashed] (axis cs:1e0,0.0)  -- (axis cs:1e0,-90.0);
+\addplot[line width=2pt,red,dashed,domain=1e0:1e4, samples=51] {-90.0};
+\draw[draw=none,fill=blue] (axis cs:0.1,-5.710593137499643) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:1,-45.0) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:10,-84.28940686250037) circle (2pt);
+\end{axis}
+\end{tikzpicture}

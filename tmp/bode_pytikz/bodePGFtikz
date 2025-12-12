@@ -1,0 +1,169 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+
+# auteur : fmv
+# date   : juillet 2019
+
+
+import os
+import random
+import datetime
+import argparse
+
+from bodePGFtikz import *
+
+# ============================================================================
+def main_parser():
+
+    description="script pour générer des diagrammes de Bode avec pgfplots/TikZ/LaTeX"
+    formatter = lambda prog: argparse.HelpFormatter(prog,max_help_position=52)
+    parser = argparse.ArgumentParser(description=description,formatter_class=formatter)
+    parser.set_defaults(random=0)
+
+    parser.add_argument('-r'  ,'--random'   ,help='génère des diagrammes de Bode aléatoirement' \
+                        ,dest="random_gen"        ,action='store_true', default=False)
+    parser.add_argument('-a'  ,'--auto_axis',help='choix automatique de l\'échelle des axes', \
+                         dest="auto_axis" , action='store_true', default=False)
+    parser.add_argument('-s'  ,'--sys'      ,help=\
+   'liste des sous systèmes de la fonction de transfert : ajouter plusieurs à la suite si nécessaire ex : -s 1 -1 -s 10 -2',
+                        dest="taus",nargs=2,metavar=("time","order"),action='append')
+    parser.add_argument('-N'  ,'--nrand'    ,help='nrand est le nombre de systèmes générés aléatoirement',\
+                        dest="nrand",default=1)
+    parser.add_argument('-o'  ,'--fileo'    ,help='nom de fichier de sortie'   ,dest="texFile" ,default="test")
+    parser.add_argument('-c'  ,'--comp'     ,help='compiler le fichier tex dans la foulée et l\'affiché', \
+                        dest="compiler", default=False, action='store_true')
+    parser.add_argument('-t'  ,'--tikz'  ,help='génerer le code tikz dans un fichier indépendant texFile.tikz', \
+                        dest="tikzFile", default=False, action='store_true')
+    parser.add_argument('-g'  ,'--gain'    ,help='gain statique (gain naturel)',dest="gain_static", default=1, type=int)
+    parser.add_argument('--puls_axis'           ,nargs=2,metavar=("wmin","wmax"),\
+                        help='intervalle des pulsations (min,max) entre 10^{min} et 10^{max}', \
+                        dest="puls_axis",type=int,default=[-8,8])
+    parser.add_argument('--gain_axis'           ,nargs=3,metavar=("Gmin","Gmax","step"),\
+                        help='intervalle des gains (wmin,wmax,inter) en dB', \
+                        dest="gain_axis",type=float)
+    parser.add_argument('--phas_axis'           ,nargs=3,metavar=("phimin","phimax","step"),\
+                        help='intervalle des phases (phimin,phimax,inter) en degree', \
+                        dest="phas_axis",type=float)
+
+
+    if len(sys.argv)==1:
+        parser.print_help()
+        sys.exit(1)
+    args = parser.parse_args()
+
+    return args
+# ============================================================================
+
+if __name__=="__main__":
+
+    now = datetime.datetime.now()
+
+    args = main_parser()
+    random_gen = args.random_gen
+    auto_axis=args.auto_axis
+    compiler=args.compiler
+    tikzFile=args.tikzFile
+    taus=[]
+    if args.taus :
+        for tau in args.taus:
+            print("tau",tau)
+            t1=float(tau[0])
+            o1=int(tau[1])
+            taus.append((t1,o1))
+    nrand=int(args.nrand)
+    texFile=args.texFile
+    gain_static=args.gain_static
+    puls=args.puls_axis
+    gain_axis=args.gain_axis
+    phas_axis=args.phas_axis
+
+    command_used=" ".join(sys.argv)
+
+    if not random_gen and not args.taus :
+        raise ValueError('One this two options is required :  --random or --sys see help -h')
+
+    if not auto_axis and (not args.puls_axis or not args.gain_axis or not args.phas_axis ) :
+        raise ValueError('One this two options is required :  --a or --[puls,gain,phas]_axis see help -h')
+
+
+    if not random_gen :
+
+        if auto_axis :
+            puls_axis=(-8,8)
+            intpuls,omegas,taus,deriv_integ,classe,m,n = calc_print_infos(gain_static,taus,puls_axis,verbose=True) 
+            gain_min,gain_max,phas_min,phas_max,gpw_particular = \
+            numerical_H(puls_axis,gain_static,taus,omegas,deriv_integ,classe)
+            intGain=8
+            intPhi=8
+        else:
+            puls_axis=(puls[0],puls[1])
+            intpuls,omegas,taus,deriv_integ,classe,m,n = calc_print_infos(gain_static,taus,puls_axis,verbose=True) 
+            gain_min,gain_max,phas_min,phas_max,gpw_particular = \
+            numerical_H(puls_axis,gain_static,taus,omegas,deriv_integ,classe)
+            gain_min,gain_max,intGain = gain_axis[0],gain_axis[1],int(gain_axis[2])
+            phas_min,phas_max,intPhi  = phas_axis[0],phas_axis[1],int(phas_axis[2])
+
+        gain_axis=(gain_min,gain_max,intGain)
+        phas_axis=(phas_min,phas_max,intPhi)
+        write_tex_file(gain_axis,phas_axis,puls_axis,gain_static,taus,gpw_particular,command_used,\
+                       fileout=texFile,write_tikz_file=tikzFile,verbose=False)
+
+        if compiler :
+            texFileout=texFile+".tex"
+            os.system("pdflatex "+texFileout)
+            texFileout=texFile+".pdf"
+            os.system("mupdf "+texFileout+" &")
+
+    elif random_gen :
+
+        if auto_axis :
+            puls_axis=(-8,8)
+            intpuls,omegas,taus,deriv_integ,classe,m,n = calc_print_infos(gain_static,taus,puls_axis,verbose=True) 
+            gain_min,gain_max,phase_min,phase_max,gpw_particular = \
+            numerical_H(puls_axis,gain_static,taus,omegas,deriv_integ,classe)
+        else:
+            puls_axis=(puls[0],puls[1])
+        
+        k=0
+        while k < nrand:
+
+            deriv=False
+            m=1
+            n=0
+            while m > n or n == 0 :
+                gain_static=10**(rd.randint(0,3))
+                taus=[]
+                rd1=rd.randint(puls_axis[0]+1,0)
+                rd2=rd.randint(1,puls_axis[1]-1)
+                rd3=rd.randint(1,4)
+                tau_all=[10**(x) for x in range(rd1,rd2,rd3)]
+                rd.shuffle(tau_all)
+                while len(tau_all)>=1 : 
+                    tau=tau_all.pop()
+                    ordre=rd.randint(-3,4)
+                    while ordre == 0 and deriv :
+                        ordre=rd.randint(-4,4)
+                    if ordre == 0 and not deriv :
+                        tau=rd.randint(-4,4)
+                        while tau == 0:
+                            tau=rd.randint(-4,4)
+                        deriv=True
+                    taus.append((tau,ordre))
+                intpuls,omegas,taus,deriv_integ,classe,m,n = calc_print_infos(gain_static,taus,puls_axis,verbose=True) 
+
+            gain_min,gain_max,phase_min,phase_max,gpw_particular = \
+            numerical_H(puls_axis,gain_static,taus,omegas,deriv_integ,classe)
+
+            # command line 
+            string=" -a "
+            for tau in taus:
+                string+=' -s '+str(tau[0])+" "+str(tau[1]) 
+            command_used=str(sys.argv[0])+string+" -g "+str(gain_static)
+            gain_axis=(gain_min,gain_max,8)
+            phas_axis=(phase_min,phase_max,8)
+            texFileout=texFile+str(k)+".tex"
+            write_tex_file(gain_axis,phas_axis,puls_axis,gain_static,taus,gpw_particular,command_used,
+                           fileout=texFileout,verbose=False)
+            k+=1
+
+

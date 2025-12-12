@@ -1,0 +1,10 @@
+#!/bin/bash
+for file in `ls $1*.tex | sort -V`; 
+do
+    filename=$(basename -- "$file")
+    extension="${filename##*.}"
+    filename="${filename%.*}"
+    echo $filename
+    pdflatex $filename.tex > $filename.log 
+    mupdf $filename.pdf & 
+done

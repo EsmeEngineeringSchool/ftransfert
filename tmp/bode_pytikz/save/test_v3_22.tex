@@ -1,0 +1,109 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%  Fichier généré par gentex.py !
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass{article}
+\usepackage[francais]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{amssymb}
+\usepackage{pgf,tikz}
+\usepackage{pgfplots}
+\usepackage{siunitx}
+\usepackage{geometry}
+\usepackage{mymath}
+\geometry{
+paperwidth=21cm,
+paperheight=29.7cm,
+margin=1cm
+}
+\usepackage{tabularx}
+\newcolumntype{K}[1]{>{\centering\arraybackslash}p{#1}}
+\newcolumntype{M}[1]{>{\centering\arraybackslash}m{#1}}
+\newcolumntype{N}{@{}m{0pt}@{}}
+\begin{document}
+\thispagestyle{empty}
+$$\boldsymbol{H(p)=\dfrac{1000}{(0.1p+1)(1e-05p+1)}}$$
+\begin{center}
+\begin{tikzpicture}[trim axis left]
+\begin{axis}
+[ticklabel style = {font=\normalsize},
+width=0.9\textwidth,
+height=0.25\textheight,
+grid=both,
+major grid style={black!40},
+label style={font=\large},
+xmode=log,ymode=normal,ylabel={Gain (\si{\decibel})},
+xtick={1e-8,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4,1e5,1e6,1e7,1e8},
+ytick={-159.0,-128.0,-97.0,-66.0,-35.0,-4.0,27.0,58.0,89.0},
+xticklabels={$10^{-8}$,$10^{-7}$,$10^{-6}$,$10^{-5}$,$10^{-4}$,$10^{-3}$,$10^{-2}$,$10^{-1}$,$10^{0}$,$10^{1}$,$10^{2}$,$10^{3}$,$10^{4}$,$10^{5}$,$10^{6}$,$10^{7}$,$10^{8}$},
+ytick={-159.0,-128.0,-97.0,-66.0,-35.0,-4.0,27.0,58.0,89.0},
+xmin=1e-8,xmax=1e8,
+ymin=-159.0,ymax=89.0
+]
+\addplot[ultra thick, blue,domain=1e-8:1e8, samples=201] {60-10*log10(1+0.010000000000000002*x*x)-10*log10(1+1.0000000000000002e-10*x*x)};
+\addplot[line width=2pt,red,dashed,domain=1e-8:1e1, samples=51] {60.0+0.0*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=1e1:1e5, samples=51] {80.0+-20.0*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=1e5:1e8, samples=51] {180.0+-40.0*log10(x)};
+\draw[draw=none,fill=blue] (axis cs:1,59.956786261739275) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:10,56.98969999993074) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:100000,-23.010300000069265) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:1000000,-60.043213738260725) circle (2pt);
+\end{axis}
+\end{tikzpicture}
+
+\begin{tikzpicture}[trim axis left]
+\begin{axis}
+[ticklabel style = {font=\normalsize},
+width=0.9\textwidth,
+height=0.25\textheight,
+grid=both,
+major grid style={black!40},
+label style={font=\large},
+xmode=log,ymode=normal,xlabel={Pulsation (\si{\radian\per\second})},
+ylabel={Phase (\si{degree})},
+xtick={1e-8,1e-7,1e-6,1e-5,1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4,1e5,1e6,1e7,1e8},
+ytick={-207.0,-177.75,-148.5,-119.25,-90.0,-60.75,-31.5,-2.25,27.0},
+xticklabels={$10^{-8}$,$10^{-7}$,$10^{-6}$,$10^{-5}$,$10^{-4}$,$10^{-3}$,$10^{-2}$,$10^{-1}$,$10^{0}$,$10^{1}$,$10^{2}$,$10^{3}$,$10^{4}$,$10^{5}$,$10^{6}$,$10^{7}$,$10^{8}$},
+ytick={-207.0,-177.75,-148.5,-119.25,-90.0,-60.75,-31.5,-2.25,27.0},
+xmin=1e-8,xmax=1e8,
+ymin=-207.0,ymax=27.0
+]
+\addplot[ultra thick, blue,domain=1e-8:1e8, samples=201] {-1*atan2(0.1*x,1)-1*atan2(1e-05*x,1)};
+\addplot[line width=2pt,red,dashed,domain=1e-8:1e1, samples=51] {0.0};
+\draw[line width=2pt,red,dashed] (axis cs:1e1,0.0)  -- (axis cs:1e1,-90.0);
+\addplot[line width=2pt,red,dashed,domain=1e1:1e5, samples=51] {-90.0};
+\draw[line width=2pt,red,dashed] (axis cs:1e5,-90.0)  -- (axis cs:1e5,-180.0);
+\addplot[line width=2pt,red,dashed,domain=1e5:1e8, samples=51] {-180.0};
+\draw[draw=none,fill=blue] (axis cs:1,-5.711166095294755) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:10,-45.00572957793221) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:100000,-134.99427042206779) circle (2pt);
+\draw[draw=none,fill=blue] (axis cs:1000000,-174.28883390470526) circle (2pt);
+\end{axis}
+\end{tikzpicture}
+\end{center}
+\paragraph{Fonctions réelles du gain et du déphasage}
+$$G(\omega)=|H(\jw)|=\dfrac{1000}{\sqrt{1+\tau_1^2\omega^2}\sqrt{1+\tau_2^2\omega^2}}$$
+$$G_{dB}(\omega)=60-10\log{(1+\tau_1^2\omega^2)}-10\log{(1+\tau_2^2\omega^2)}$$
+$$\phi(\omega)=\arg{H(\jw)}=-\arctan{\tau_1\omega}-\arctan{\tau_2\omega}$$
+\paragraph{Quelques valeurs particulières (calculées) :}
+
+\begin{center}
+\resizebox{0.95\textwidth}{!}{%
+\begin{tabular}{|M{3cm}|M{2cm}|M{2cm}|M{2cm}|M{2cm}|N}
+\hline
+Pulsation (\si{\radian\per\second})&$10^{0}$&$10^{1}$&$10^{5}$&$10^{6}$& \\[1em] 
+\hline
+Gain (\si{\decibel})&60&57&-23&-60& \\[1em] 
+\hline
+Déphasage (\si{\degree})&-6&-45&-135&-174& \\[1em] 
+
+    \hline
+\end{tabular}%
+}
+\end{center}
+\paragraph{Commande pour reproduire ce fichier :}
+\begin{verbatim}bodePGFtikz.py --taus [(0.1, -1), (1e-05, -1)]--axis estimation\end{verbatim}\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
