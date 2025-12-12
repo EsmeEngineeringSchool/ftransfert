@@ -1,4 +1,5 @@
 import numpy as np
+import sympy as sp
 # class de format d'un float
 class nf(float):
     def __repr__(self):
@@ -16,20 +17,28 @@ def dB2nat(dB)   : return 10**(dB/20)     # dB      -> naturel (gain)
 # -----------------------------------------------------------------------------
 def bo2bf(z)     : return z/(1+z)         # BO      -> BF
 
-# retourne la liste des tuples des valeurs et de leurs occurences d'une liste en entrée 
-def multiplicity(L):
+# retourne la liste des tuples des valeurs et de leurs occurences d'une liste de tuplesen entrée 
+def multiplicity(L,sign):
     multi=[]
     for l in sorted(list(set(L))):
         count=0
         for e in L :
             if e == l :
                 count+=1
-        multi.append((l,count))
+        multi.append((l,sign*count))
     return multi
 
 def eval_poly(P,x):
     ev=complex(0.0)
     for k,c in enumerate(P):
-        expo=len(self.num)-k-1
+        expo=len(P)-k-1
         ev+=c*x**expo
     return ev
+
+def eval_poly_symbol(P,symb):
+    expr=0.0
+    for k,c in enumerate(P):
+        expo=len(P)-k-1
+        expr+=c*symb**expo
+    return expr
+
