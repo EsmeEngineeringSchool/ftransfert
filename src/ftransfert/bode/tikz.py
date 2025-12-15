@@ -1,20 +1,84 @@
 from common.latex import beginmathdisplay,endmathdisplay,macro,begin,end
 from common.string_ import newlines
 
+
+def gaintikz(FT):
+    out=[begin("tikzpicture",options="trim axis left")]
+    options_axis="""
+ticklabel style = {font=\\normalsize},
+width=0.9\\textwidth,
+height=0.25\\textheight,
+grid=both,
+major grid style={black!40},
+label style={font=\large},
+xmode=log,ymode=normal,ylabel={Gain (\si{\decibel})},
+xtick={1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4},
+ytick={-60.0,-50.0,-40.0,-30.0,-20.0,-10.0,0.0,10.0,20.0},
+xticklabels={$10^{-4}$,$10^{-3}$,$10^{-2}$,$10^{-1}$,$10^{0}$,$10^{1}$,$10^{2}$,$10^{3}$,$10^{4}$},
+ytick={-60.0,-50.0,-40.0,-30.0,-20.0,-10.0,0.0,10.0,20.0},
+xmin=1e-4,xmax=1e4,
+ymin=-60.0,ymax=20.0
+"""
+    w_intervals=[("1e-4","1e0"),("1e0","1e4")]
+    gain_relations=["0.0+0.0*log10(x)","0.0+-20.0*log10(x)"]
+    out+=[begin("axis",options=options_axis)]
+    out+=[macro("addplot",options="ultra thick, blue,domain=1e-4:1e4, samples=256",value="-10*log10(1+1.0*x*x)",semicolon=True)]
+    for gain_relation,(w1,w2) in zip(gain_relations,w_intervals):
+        out+=[macro("addplot",options=f"line width=2pt,red,dashed,domain={w1}:{w2}, samples=16",value=gain_relation,semicolon=True)]
+    out+=[end("axis")]
+    out+=[end("tikzpicture")]
+    return newlines(out) 
+def phasetikz(FT):
+    out=[begin("tikzpicture",options="trim axis left")]
+    options_axis="""
+ticklabel style = {font=\\normalsize},
+width=0.9\\textwidth,
+height=0.25\\textheight,
+grid=both,
+major grid style={black!40},
+label style={font=\large},
+xmode=log,ymode=normal,xlabel={Pulsation (\si{\\radian\per\second})},
+ylabel={Phase (\si{degree})},
+xtick={1e-4,1e-3,1e-2,1e-1,1e0,1e1,1e2,1e3,1e4},
+ytick={-90.0,-75.0,-60.0,-45.0,-30.0,-15.0,0.0},
+xticklabels={$10^{-4}$,$10^{-3}$,$10^{-2}$,$10^{-1}$,$10^{0}$,$10^{1}$,$10^{2}$,$10^{3}$,$10^{4}$},
+ytick={-90.0,-75.0,-60.0,-45.0,-30.0,-15.0,0.0},
+xmin=1e-4,xmax=1e4,
+ymin=-90.0,ymax=0.0
+"""
+    out+=[begin("axis",options=options_axis)]
+    out+=[macro("addplot",options="ultra thick, blue,domain=1e-4:1e4, samples=256",value="-1*atan2(1.0*x,1)",semicolon=True)]
+    for phase_relation,(w1,w2) in zip(phase_relations,w_intervals):
+        out+=[macro("addplot",options=f"line width=2pt,red,dashed,domain={w1}:{w2}, samples=16",value=phase_relation,semicolon=True)]
+        out+=[macro("draw",options="line width=2pt,red,dashed" (axis cs:1e0,0.0)  -- (axis cs:1e0,-90.0);]
+    out+=[end("axis")]
+    out+=[end("tikzpicture")]
+    return newlines(out) 
+
+
 def bode(FT,**kwargs):
     wlim=kwargs.get('wlim',None)
     print(wlim)
     # latex header
-    out=[macro("documentclass","article","tikz")]
+    out=[macro("documentclass","article")]
+    out+=[macro("usepackage","geometry")]
+    out+=[macro("geometry","paperwidth=21cm,\npaperheight=29.7cm,\nmargin=1cm")]
     out+=[macro("usepackage","amsmath")]
     out+=[macro("usepackage","mathfmv")]
     out+=[macro("usepackage","siunitx")]
-    out+=[macro("usepackage","circuitikz")]
+    out+=[macro("usepackage","pgf")]
+    out+=[macro("usepackage","tikz")]
+    out+=[macro("usepackage","pgfplots")]
+    out+=[macro("pgfplotsset","compat=1.18")]
     out+=[begin("document")]
-    out+=[]
     out+=[beginmathdisplay()]
     out+=[FT.latex("p")]
     out+=[endmathdisplay()]
+    out+=[begin("center")]
+    out+=[gaintikz(FT)]
+    out+=[""]
+    out+=[phasetikz(FT)]
+    out+=[end("center")]
     out+=[macro("paragraph","Fonctions réelles du gain et du déphasage")]
     out+=[beginmathdisplay()]
     out+=[FT.latex("module")]
