@@ -15,12 +15,13 @@ def endmathdisplay():
 # -----------------------------------------------------------------
 # retourne \macro{value}
 # -----------------------------------------------------------------
-def macro(name,value="",options=""):
+def macro(name,value="",options="",semicolon=False):
     out=['\\'f"{name}"]
     if len(options) :
         out+=["["f"{options}""]"]
     if len(value) :
         out+=["{"f"{value}""}"]
+    if semicolon : out[-1]+=";"
     return concatenate(out)
 # -----------------------------------------------------------------
 # retourne \begin{env}[options]
