@@ -1,0 +1,6 @@
+#!/usr/bin/env python3
+from bodetikz.qtex2latex.qtex2latex import main
+
+if __name__ == "__main__":
+    main()
+
