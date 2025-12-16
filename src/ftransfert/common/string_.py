@@ -66,7 +66,11 @@ def strpoly(poly,latex=False):
     out=[]
     for k,coeff in enumerate(poly):
         expo=len(poly)-k-1
-        signcoeff=f"{signstr(coeff)}{abs(coeff)}"
+        if coeff==0.0 :continue
+        if k > 0 or coeff<0 :
+            signcoeff=f"{signstr(coeff)}{abs(coeff)}"
+        else:
+            signcoeff=f"{abs(coeff)}"
         match expo:
             case 0:
                 strexpo=""
