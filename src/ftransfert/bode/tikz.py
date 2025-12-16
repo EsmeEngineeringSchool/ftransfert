@@ -26,6 +26,7 @@ def options_axis(xint,yint,xlabel="",ylabel="",ystep=20):
     out+=[f"ymin={ymin},ymax={ymax}"]
     return newlines(out)
 
+# générations des relations de gain et de phases asymptotiques
 def asymptotics_relations(FT):
     gain_relations,phase_relations=[],[]
     i,d=FT.classe
@@ -103,6 +104,10 @@ def bode(FT,**kwargs):
     print("debug omegas",omegas)
     print("debug w_int",w_intervals)
 
+
+    # ------------------------------------------
+    # LaTeX Header
+    # ------------------------------------------
     out=[macro("documentclass","article")]
     out+=[macro("usepackage","geometry")]
     out+=[macro("geometry","paperwidth=21cm,\npaperheight=29.7cm,\nmargin=1cm")]
@@ -114,17 +119,21 @@ def bode(FT,**kwargs):
     out+=[macro("usepackage","pgfplots")]
     out+=[macro("pgfplotsset","compat=1.18")]
     out+=[begin("document")]
+    # Affichage de la fonction de transfert H(p)
     out+=[beginmathdisplay()]
     out+=[FT.latex("p")]
     out+=[endmathdisplay()]
     out+=[begin("center")]
-    #w_intervals=[(1e-4,1e-2),(1e-2,1e-1),(1e-1,1e0),(1e0,1e2),(1e2,1e4)]
+    # Diagramme de Bode (Gain |H(jw)|dB)
     gain_exact=FT.addplot("moduledB")
     out+=[gaintikz(FT,w_intervals,gain_axis,gain_relations,gain_exact)]
     out+=[""]
+    # Diagramme de Bode (Phase deg)
     phase_exact=FT.addplot("argument")
     out+=[phasetikz(FT,w_intervals,phase_axis,phase_relations,phase_exact)]
     out+=[end("center")]
+
+    # Affichage des fonctions réelles 
     out+=[macro("paragraph","Fonctions réelles du gain et du déphasage")]
     out+=[beginmathdisplay()]
     out+=[FT.latex("module")]
@@ -135,6 +144,7 @@ def bode(FT,**kwargs):
     out+=[beginmathdisplay()]
     out+=[FT.latex("argument")]
     out+=[endmathdisplay()]
+    # Tableau des valeurs particulières 
     out+=[macro("paragraph","Quelques valeurs particulières calculées")]
     out+=[FT.tablatex(wlim=wlim)]
     out+=[end("document")]

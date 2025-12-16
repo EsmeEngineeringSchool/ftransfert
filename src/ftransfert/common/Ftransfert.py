@@ -82,12 +82,15 @@ class Ftransfert():
 
         self.w_i.sort(key=lambda x: x[0])
 
+        # ------------------------------
+        # gain statique 
         gnum,gden=1,1
         for z in self.Czeros :
             if abs(z) > 0.0 : gnum*=abs(z)
         for p in self.Cpoles :
             if abs(p) > 0.0 : gden*=abs(p)
         self.gain_static=self.gain*gnum/gden
+        # ------------------------------
         
         # ------------------------------
         # ENCORE UTILE ?
@@ -151,26 +154,20 @@ class Ftransfert():
         match key :
             case "moduledB" :
                 num,den="",""
-                #i,d=self.classe
-                #si=f"-{10*i}*log10(x)" if i != 0 else ""
-                #sd=f"+{10*d}*log10(x)" if d != 0 else ""
-                #den+=f"{si}"
-                #num+=f"{sd}"
+                i,d=self.classe
+                si=f"-{20*i}*log10(x)" if i != 0 else ""
+                sd=f"+{20*d}*log10(x)" if d != 0 else ""
+                den+=f"{si}"
+                num+=f"{sd}"
                 for k,z in enumerate(self.Czeros):
+                    if abs(z) == 0.0 : continue 
                     print("debug",z)
                     num+=f"+10*log10({z.real**2}+(x+({z.imag}))*(x+({z.imag})))"
                 for k,p in enumerate(self.Cpoles):
+                    if abs(p) == 0.0 : continue 
                     print("debug",p)
                     den+=f"-10*log10({p.real**2}+(x+({p.imag}))*(x+({p.imag})))"
-
-#                for k,w in enumerate(self.w_i):
-#                    im=f"(x*x)/({w[0]*w[0]})"
-#                    if w[1] < 0 :
-#                        den+=f"-10*{abs(w[1])}*log10(1+{im})"
-#                    else:
-#                        num+=f"+10*{abs(w[1])}*log10(1+{im})"
-                return f"{20*np.log10(self.gain_static)}"f"{num}"f"{den}"
-                #return f"{20*np.log10(self.gain)}"f"{num}"f"{den}"
+                return f"{20*np.log10(self.gain)}"f"{num}"f"{den}"
             case "argument":
                 i,d=self.classe
                 out=""
@@ -203,8 +200,8 @@ class Ftransfert():
             case "moduledB" :
                 num,den="",""
                 i,d=self.classe
-                si=f"{20*i}\\log\omega" if i != 0 else ""
-                sd=f"{20*d}\\log\omega" if i != 0 else ""
+                si=f"-({20*i})\\log\omega" if i != 0 else ""
+                sd=f"+({20*d})\\log\omega" if d != 0 else ""
                 den+=f"{si}"
                 num+=f"{sd}"
                 for k,w in enumerate(self.w_i):
