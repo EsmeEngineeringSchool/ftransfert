@@ -1,0 +1,5 @@
+#!/bin/bash
+for k in 1 2 3 4
+do
+    pdflatex tmp${k}.tex
+done
