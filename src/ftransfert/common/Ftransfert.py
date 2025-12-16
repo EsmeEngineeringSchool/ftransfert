@@ -18,6 +18,7 @@ class Ftransfert():
         Une FT est définie par ces zéros et pôles (self.type='roots') ou des fonctions (lambda) pour ses
         polynômes au numérateur et dénominateur (self.type='function').
     """
+    # -----------------------------------------------------------------------------------
     def __init__(self,zeros=None,poles=None,num=None,den=None,gain=1,classe=(0,0),title='',name="F",verbeux=1):
         self.gain=gain       # gain de la FT
         self.num=num         # polynôme au numérateur
@@ -79,12 +80,13 @@ class Ftransfert():
                 non_zeros=[abs(p) for p in self.Cpoles if abs(p)>0.0]
                 self.w_i+=multiplicity(non_zeros,-1.0)
 
+        self.w_i.sort(key=lambda x: x[0])
+
         gnum,gden=1,1
-        for k,w in enumerate(self.w_i):
-            if w[1] < 0 :
-                gden*=w[0]
-            else:
-                gnum*=w[0]
+        for z in self.Czeros :
+            if abs(z) > 0.0 : gnum*=abs(z)
+        for p in self.Cpoles :
+            if abs(p) > 0.0 : gden*=abs(p)
         self.gain_static=self.gain*gnum/gden
         
         # ------------------------------
@@ -129,7 +131,6 @@ class Ftransfert():
                 num,den=eval_poly(self.num,p),eval_poly(self.den,p)
                 h=gain*num/den
                 return h,np.abs(h),np.angle(h)
-
     # ------------------------------------------------------------------------------
     # retourne les parties réelles, imaginaires, le module et la phase de la
     # fonction de transfert complexe évaluée en w.
@@ -144,16 +145,57 @@ class Ftransfert():
                 phase[k]=self.atanN(hi.imag,hi.real)
                 k+=1
         return h.real,h.imag,mag,phase
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------
+    # retourne la représentation addplot de la fonction de transfert
+    def addplot(self,key):
+        match key :
+            case "moduledB" :
+                num,den="",""
+                #i,d=self.classe
+                #si=f"-{10*i}*log10(x)" if i != 0 else ""
+                #sd=f"+{10*d}*log10(x)" if d != 0 else ""
+                #den+=f"{si}"
+                #num+=f"{sd}"
+                for k,z in enumerate(self.Czeros):
+                    print("debug",z)
+                    num+=f"+10*log10({z.real**2}+(x+({z.imag}))*(x+({z.imag})))"
+                for k,p in enumerate(self.Cpoles):
+                    print("debug",p)
+                    den+=f"-10*log10({p.real**2}+(x+({p.imag}))*(x+({p.imag})))"
+
+#                for k,w in enumerate(self.w_i):
+#                    im=f"(x*x)/({w[0]*w[0]})"
+#                    if w[1] < 0 :
+#                        den+=f"-10*{abs(w[1])}*log10(1+{im})"
+#                    else:
+#                        num+=f"+10*{abs(w[1])}*log10(1+{im})"
+                return f"{20*np.log10(self.gain_static)}"f"{num}"f"{den}"
+                #return f"{20*np.log10(self.gain)}"f"{num}"f"{den}"
+            case "argument":
+                i,d=self.classe
+                out=""
+                if d-i != 0 :
+                    out+=f"{int((d-i)*90)}"
+                for k,w in enumerate(self.w_i):
+                    m=(int(w[1]) if abs(w[1]) !=1 else signstr(w[1]))
+                    out+=f"+({int(w[1])})*atan2(x/{w[0]},1)"
+                return out
+    # ------------------------------------------------------------------------------------
+    # retourne la représentation math display de LaTeX
     def latex(self,key="p"):
         if self.type == "functions": return "FT defined with lambda functions no latex available"
         match key :
             case "p" :
                 match self.type :
                     case "roots":
-                        return "\\boldsymbol{"f"{self.name}""(p)="f"{self.gain}""\\dfrac{"\
-                                              f"{strroot(self.Czeros,latex=True)}""}{"\
-                                              f"{strroot(self.Cpoles,latex=True)}""}}"
+                        if len(strroot(self.Cpoles,latex=True)):
+                            return "\\boldsymbol{"f"{self.name}""(p)="f"{self.gain}""\\dfrac{"\
+                                                  f"{strroot(self.Czeros,latex=True)}""}{"\
+                                                  f"{strroot(self.Cpoles,latex=True)}""}}"
+                        else:
+                            return "\\boldsymbol{"f"{self.name}""(p)="f"{self.gain}"\
+                                                  f"{strroot(self.Czeros,latex=True)}""}"
+
                     case "polys":
                         return "\\boldsymbol{"f"{self.name}""(p)="f"{self.gain}""\\dfrac{"\
                                               f"{strpoly(self.num,latex=True)}""}{"\
@@ -169,14 +211,14 @@ class Ftransfert():
                     re="1+"
                     im="\\left(\\frac{\omega}{\omega_"f"{k+1}""}\\right)^2"
                     if w[1] < 0:
-                        den+="-10\\log{\\left("f"{re}{im}""\\right)}"
+                        den+=f"{int(10*w[1])}""\\log{\\left("f"{re}{im}""\\right)}"
                     else:
-                        num+="+10\\log{\\left("f"{re}{im}""\\right)}"
+                        num+=f"+{int(10*w[1])}""\\log{\\left("f"{re}{im}""\\right)}"
 
-                return "G_{dB}(\omega)="f"{20*np.log10(self.gain_static)}"f"{num}"f"{den}" 
+                return "G_{dB}(\omega)="f"{int(20*np.log10(self.gain_static))}"f"{num}"f"{den}" 
             case "module":
                 num,den="{","{"
-                if self.gain_static != 1 : num+=f"{int(self.gain_static)}""\\left("
+                if self.gain_static != 1 : num+=f"{int(self.gain_static)}"""
                 if self.type == "polys" :
                     w=sp.Symbol(r"\omega")
                     num+=sp.latex(sp.simplify(eval_poly_symbol(self.num,w*sp.I).expand()),imaginary_unit="j")
@@ -190,16 +232,19 @@ class Ftransfert():
                     den+=f"{si}"
                     num+=f"{sd}"
                     for k,w in enumerate(self.w_i):
-                        re="1+"
-                        im="\\left(\\frac{\omega}{\omega_"f"{k+1}""}\\right)^2"
-                        if w[1] < 0 :
-                            den+="\sqrt{"f"{re}{im}""}"
-                        else :
-                            num+="\sqrt{"f"{re}{im}""}"
-                if self.gain_static != 1 : num+="\\right)"
+                        for m in range(int(abs(w[1]))) :
+                            re="1+"
+                            im="\\left(\\frac{\omega}{\omega_"f"{k+1}""}\\right)^2"
+                            if w[1] < 0 :
+                                den+="\sqrt{"f"{re}{im}""}"
+                            else :
+                                num+="\sqrt{"f"{re}{im}""}"
                 num+="}"
                 den+="}"
-                return f"G(\omega)=|H(\jw)|=\dfrac{num}{den}"
+                if len(den) > 2 :
+                    return f"G(\omega)=|H(\jw)|=\dfrac{num}{den}"
+                else:
+                    return f"G(\omega)=|H(\jw)|={num}"
             case "argument":
                 i,d=self.classe
                 out="\phi(\omega)=\\arg{H(\jw)}="
@@ -207,11 +252,10 @@ class Ftransfert():
                     out+=f"{int((d-i)*90)}"
                 for k,w in enumerate(self.w_i):
                     m=(int(w[1]) if abs(w[1]) !=1 else signstr(w[1]))
-                    out+=f"{m}""\\arctan{\\tau_"f"{k+1}""\omega}"
+                    out+=f"{m}""\\arctan{\\frac{\omega}{\omega_"f"{k+1}""}}"
                 return out
-
+    # ------------------------------------------------------------------------------------
     def tablatex(self,**kwargs):
-        # Recast levels to new class
         class nf(float):
             def __repr__(self):
                 return f'{self:.3f}'
@@ -235,33 +279,6 @@ class Ftransfert():
         out+=["\\end{center}"]
         return newlines(out)
 
-## ========================================================== 
-##  Générer les tableaux LaTeX des données
-## ========================================================== 
-#def gen_tab(taus,puls,intpuls,w,deriv_integ,classe,gpw_particular):
-#   
-#    hline="\\hline\n"
-#    tab_tau_w=""
-#    tab_valeurs_particulieres="""
-#\\begin{center}
-#\\resizebox{0.6\\textwidth}{!}{%
-#"""
-#
-#    tabu_line="\\begin{tabular}{|M{3.0cm}"
-#    puls_line="Pulsation (\si{\\radian\per\second})"
-#    gain_line="Gain (\si{\decibel})"
-#    phas_line="Déphasage (\si{\degree})"
-#
-#    for gpw in gpw_particular:
-#        tabu_line+="|M{1.5cm}"
-#        if int(gpw[2]) == gpw[2] :
-#            puls_line+="&$10^{"+str(int(gpw[2]))+"}$"
-#        else:
-#            puls_line+="&"+str(round_sig(10**(gpw[2]),1))
-#
-#        gain_line+="&"+str(int(round(gpw[0])))
-#        phas_line+="&"+str(int(round(gpw[1])))
-
     #i,d # classe des intégrateurs et dérivateurs
     def get_classe(self):
         if self.type != "polys" : return 
@@ -280,7 +297,7 @@ class Ftransfert():
             case _:
                 print("Impossible de déterminer l'ordre du polynome")
                 return None,None
-
+    # 
     def info(self):
         if self.verbeux >= 1 :
             print(52*'-')
@@ -288,6 +305,7 @@ class Ftransfert():
             print(52*'-')
             print(f"Système       (type:{self.type})")
             print(f"Gain                          : {self.gain}")
+            print(f"Gain (static)                 : {self.gain_static}")
             if self.type == "functions" : return 
             i,d=self.classe
             print(f"nombre d'intégrateurs (i)     = {i}")
@@ -302,18 +320,16 @@ class Ftransfert():
             #print("intervalles pulsations        : ",intpuls)
             #print("valeurs particulières (calcul): ",omegas)
             print()
-
-
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------
     def __repr__(self):
         match self.type :
             case "roots":
-                return f'Ftranfert(zeros={self.zeros},poles={self.poles},gain={self.gain},name="{self.name}")'
+                return f'Ftranfert(zeros={self.Czeros},poles={self.Cpoles},gain={self.gain},name="{self.name}")'
             case "functions":
                 return f'Ftranfert(num={type(self.num)},den={type(self.den)},gain={self.gain},name="{self.name}")'
             case "polys":
                 return f'Ftranfert(num={self.num},den={self.den},gain={self.gain},name="{self.name}")'
-    # ------------------------------------------------------------------------------
+    # ------------------------------------------------------------------------------------
     def __str__(self):
         """
                           (p-z1)(p-z2)(p-z3)...
@@ -327,7 +343,7 @@ class Ftransfert():
                 return self.strfrac(self.type)
             case "polys":
                 return self.strfrac(self.type)
-
+    # ------------------------------------------------------------------------------------
     def strfrac(self,mode):
         if mode == "roots":
             outnum=strroot(self.Czeros)
@@ -335,7 +351,6 @@ class Ftransfert():
         elif mode == "polys":
             outnum=strpoly(self.num)
             outden=strpoly(self.den)
-
         else:
             return
         outname=f"{self.name}(p) = "
@@ -344,7 +359,6 @@ class Ftransfert():
             outgain=''
         else:
             outgain= str(self.gain)+' ' if self.gain !=1 else ''
-
         lz,lp=len(outnum),len(outden)
         diff=(lz-lp)//2
         if diff>0:
