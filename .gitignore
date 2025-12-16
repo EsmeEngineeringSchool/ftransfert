@@ -1,4 +1,7 @@
 __pycache__/
 *.py[cod]
 
-
+**/tmp*.tex
+**/tmp*.pdf
+**/tmp*.aux
+**/tmp*.log
