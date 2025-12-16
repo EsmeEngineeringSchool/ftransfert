@@ -11,10 +11,17 @@ if __name__ == "__main__" :
         print(str(H0))
         print(H0.eval(1,1))
         bodeplot(H0,y1lim=(-35,10),y2lim=(-90,0),n=1024,color="tab:green")
-    if True :
+    if False :
         gain=100
         poles=[(-0.01,0),(-0.1,0),(-100,0)]
         zeros=[(-1,0),(-1,0)]
         H2=Ftransfert(zeros=zeros,poles=poles,gain=gain,name="H_2")
         print(repr(H2))
-        bodeplot(H2,fmax=1e5,xlim=(1e-4,1e5),y1lim=(-80,80),y2lim=(-180,0),n=1024,color="tab:green")
+        bodeplot(H2,fmax=1e4,xlim=(1e-4,1e4),y1lim=(-80,80),y2lim=(-180,0),n=1024,color="tab:green")
+    if True :
+        gain=1000
+        num=[1,0,0]
+        den=[100,5,1]
+        H2=Ftransfert(num=num,den=den,gain=gain,name="H_2")
+        print(repr(H2))
+        bodeplot(H2,fmax=1e4,xlim=(1e-2,1e0),y1lim=(-20,30),y2lim=(0,180),n=1024,color="tab:green")
