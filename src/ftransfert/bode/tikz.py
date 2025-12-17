@@ -1,7 +1,7 @@
 import sys
 import numpy as np
-from common.latex import beginmathdisplay,endmathdisplay,macro,begin,end,draw,tick,ticklabels
-from common.string_ import newlines
+from ftransfert.common.latex import beginmathdisplay,endmathdisplay,macro,begin,end,draw,tick,ticklabels
+from ftransfert.common.string_ import newlines
 
 # ---------------------------------------------------------------
 # options des axes du pgfplot/tikz
@@ -30,11 +30,9 @@ def options_axis(xint,yint,xlabel="",ylabel="",ystep=20):
 def asymptotics_relations(FT):
     gain_relations,phase_relations=[],[]
     i,d=FT.classe
-    deriv=f"+{20*d}*log10(x)"
-    integ=f"-{20*i}*log10(x)"
     allinterval=f"{20*np.log10(FT.gain_static)}"
-    if i : allinterval+=integ
-    if d : allinterval+=deriv
+    if i : allinterval+=f"-{20*i}*log10(x)"
+    if d : allinterval+=f"+{20*d}*log10(x)"
     gain_relations.append(allinterval)
     phase_relations.append((d-i)*90)
     for k,w in enumerate(FT.w_i):
@@ -88,9 +86,8 @@ def phasetikz(FT,w_intervals,phase_axis,phase_relations,phase_exact):
     return newlines(out) 
 
 
-def bode(FT,**kwargs):
+def bode(FT,latex_document=True,**kwargs):
     gain_relations,phase_relations=asymptotics_relations(FT)
-
     wlim=kwargs.get('wlim',None)
     gain_axis=kwargs.get('gain_axis',(-40,40,10))
     phase_axis=kwargs.get('phase_axis',(-90,90,5))
@@ -101,24 +98,23 @@ def bode(FT,**kwargs):
     w_intervals=[]
     for k in range(len(omegas)-1):
         w_intervals.append((omegas[k],omegas[k+1]))
-    print("debug omegas",omegas)
-    print("debug w_int",w_intervals)
-
 
     # ------------------------------------------
     # LaTeX Header
     # ------------------------------------------
-    out=[macro("documentclass","article")]
-    out+=[macro("usepackage","geometry")]
-    out+=[macro("geometry","paperwidth=21cm,\npaperheight=29.7cm,\nmargin=1cm")]
-    out+=[macro("usepackage","amsmath")]
-    out+=[macro("usepackage","mathfmv")]
-    out+=[macro("usepackage","siunitx")]
-    out+=[macro("usepackage","pgf")]
-    out+=[macro("usepackage","tikz")]
-    out+=[macro("usepackage","pgfplots")]
-    out+=[macro("pgfplotsset","compat=1.18")]
-    out+=[begin("document")]
+    out=[]
+    if latex_document :
+        out+=[macro("documentclass","article")]
+        out+=[macro("usepackage","geometry")]
+        out+=[macro("geometry","paperwidth=21cm,\npaperheight=29.7cm,\nmargin=1cm")]
+        out+=[macro("usepackage","amsmath")]
+        out+=[macro("usepackage","mathfmv")]
+        out+=[macro("usepackage","siunitx")]
+        out+=[macro("usepackage","pgf")]
+        out+=[macro("usepackage","tikz")]
+        out+=[macro("usepackage","pgfplots")]
+        out+=[macro("pgfplotsset","compat=1.18")]
+        out+=[begin("document")]
     # Affichage de la fonction de transfert H(p)
     out+=[beginmathdisplay()]
     out+=[FT.latex("p")]
@@ -132,7 +128,6 @@ def bode(FT,**kwargs):
     phase_exact=FT.addplot("argument")
     out+=[phasetikz(FT,w_intervals,phase_axis,phase_relations,phase_exact)]
     out+=[end("center")]
-
     # Affichage des fonctions réelles 
     out+=[macro("paragraph","Fonctions réelles du gain et du déphasage")]
     out+=[beginmathdisplay()]
@@ -147,6 +142,7 @@ def bode(FT,**kwargs):
     # Tableau des valeurs particulières 
     out+=[macro("paragraph","Quelques valeurs particulières calculées")]
     out+=[FT.tablatex(wlim=wlim)]
-    out+=[end("document")]
+    if latex_document :
+        out+=[end("document")]
     return newlines(out)
 
