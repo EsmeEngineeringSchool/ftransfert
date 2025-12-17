@@ -161,11 +161,9 @@ class Ftransfert():
                 num+=f"{sd}"
                 for k,z in enumerate(self.Czeros):
                     if abs(z) == 0.0 : continue 
-                    print("debug",z)
                     num+=f"+10*log10({z.real**2}+(x+({z.imag}))*(x+({z.imag})))"
                 for k,p in enumerate(self.Cpoles):
                     if abs(p) == 0.0 : continue 
-                    print("debug",p)
                     den+=f"-10*log10({p.real**2}+(x+({p.imag}))*(x+({p.imag})))"
                 return f"{20*np.log10(self.gain)}"f"{num}"f"{den}"
             case "argument":
@@ -194,7 +192,8 @@ class Ftransfert():
                                                   f"{strroot(self.Czeros,latex=True)}""}"
 
                     case "polys":
-                        return "\\boldsymbol{"f"{self.name}""(p)="f"{self.gain}""\\dfrac{"\
+                        gain_shown=self.gain if self.gain !=1 else ""
+                        return "\\boldsymbol{"f"{self.name}""(p)="f"{gain_shown}""\\dfrac{"\
                                               f"{strpoly(self.num,latex=True)}""}{"\
                                               f"{strpoly(self.den,latex=True)}""}}"
             case "moduledB" :
@@ -298,7 +297,7 @@ class Ftransfert():
     def info(self):
         if self.verbeux >= 1 :
             print(52*'-')
-            print(8*" "+"Infos")
+            print(8*" "+"Ftransfert Infos")
             print(52*'-')
             print(f"Système       (type:{self.type})")
             print(f"Gain                          : {self.gain}")

@@ -68,9 +68,9 @@ def strpoly(poly,latex=False):
         expo=len(poly)-k-1
         if coeff==0.0 :continue
         if k > 0 or coeff<0 :
-            signcoeff=f"{signstr(coeff)}{abs(coeff)}"
+            signcoeff=f"{signstr(coeff)}{abs(coeff):.1e}"
         else:
-            signcoeff=f"{abs(coeff)}"
+            signcoeff=f"{abs(coeff):.1e}"
         match expo:
             case 0:
                 strexpo=""
