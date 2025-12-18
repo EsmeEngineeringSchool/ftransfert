@@ -1,4 +1,4 @@
-from common.latex import sci_latex_e,sci_latex
+from .latex import sci_latex_e,sci_latex
 from fractions import Fraction
 # -----------------------------------------------------------------
 # join lines d'une liste
@@ -24,7 +24,7 @@ def absnum(number,latex=False):
         return f"{abs(number)}"
     elif isinstance(number,float) :
         if latex :
-            return f"{sci_latex(number)}"
+            return f"{sci_latex(number,digits=0)}"
         else:
             return f"{abs(number):.1e}"
 # -----------------------------------------------------------------
@@ -63,7 +63,7 @@ def strroot(roots,latex=False):
         r,i=strc(root,latex)
         out+="(" if not latex else "\\left("
         if len(i) and latex : out+="\\left("
-        out+=f"p{signstr(-root.real)}{r}"
+        out+=f"p{signstr(-root.real) if root.real !=0 else '+'}{r}"
         if len(i) and latex : out+="\\right)"
         out+=f"{signstr(-root.imag)}{i}"
         out+=")" if not latex else "\\right)"
@@ -77,7 +77,7 @@ def strpoly(poly,latex=False):
     for k,coeff in enumerate(poly):
         expo=len(poly)-k-1
         if coeff==0.0 :continue
-        if k > 0 or coeff<0 :
+        if k > 0 or coeff < 0:
             signcoeff=f"{signstr(coeff)}{absnum(coeff,latex)}"
         else:
             signcoeff=f"{absnum(coeff,latex)}"
@@ -87,9 +87,9 @@ def strpoly(poly,latex=False):
                 strcoeff=f"{signcoeff}"
             case 1 :
                 strexpo=f"p"
-                strcoeff=f"{signcoeff if coeff != 1 else ''}"
+                strcoeff=f"{signcoeff if coeff != 1 else signstr(coeff) if k!=0 else ''}"
             case _ :
                 strexpo=f"p^{expo}"
-                strcoeff=f"{ signcoeff if coeff!=1 else ''}"
+                strcoeff=f"{signcoeff if coeff!=1 else ''}"
         out+=[f"{strcoeff}{strexpo}"]
     return "".join(out)

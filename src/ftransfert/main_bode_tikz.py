@@ -1,7 +1,27 @@
+import numpy as np
 from common.Ftransfert import Ftransfert
 from bode.tikz import bode as bodetikz
 
 if __name__ == "__main__" :
+    if True :
+        gain=2
+        num=[1,1]
+        A=np.polymul([1,10],[1,2])
+        A=np.polymul(A,[1,0])
+        den=list(map(int,A))
+        H=Ftransfert(num=num,den=den,gain=gain,name="H")
+        print(H)
+        bodetikz(H,filename="example_bodetikz_1.tex",wlim=(1e-2,1e2),gain_axis=(-40,40,10),phase_axis=(-180,0,20),n=1024)
+
+    if True :
+        gain=2
+        zeros=[(-1,0)]
+        poles=[(0,0),(-10,0),(-2,0)]
+        H=Ftransfert(zeros=zeros,poles=poles,gain=gain,name="H")
+        print(H)
+        bodetikz(H,filename="example_bodetikz_2.tex",wlim=(1e-2,1e2),gain_axis=(-40,40,10),phase_axis=(-180,0,20),n=1024)
+
+
     if True :
         gain=1000
         zeros=[(-0.001,0),(-1,0)]
@@ -9,10 +29,8 @@ if __name__ == "__main__" :
         H=Ftransfert(zeros=zeros,poles=poles,gain=gain,name="H")
         H.info()
         print(f"str : {H}")
-        filename="tmp1.tex"
-        print(f"writing {filename}")
-        with open(filename,"w") as f:
-            print(bodetikz(H,wlim=(1e-4,1e4),gain_axis=(-20,40,10),phase_axis=(-90,60,10)),file=f)
+        bodetikz(H,filename="tmp1.tex",wlim=(1e-4,1e4),gain_axis=(-20,40,10),phase_axis=(-90,60,10))
+
     if True :
         gain=1000
         num=[1,2,1]  #p**2+2p+1 
@@ -20,10 +38,7 @@ if __name__ == "__main__" :
         H=Ftransfert(num=num,den=den,gain=gain,name="H")
         print(f"str : {H}")
         H.info()
-        filename="tmp2.tex"
-        print(f"writing {filename}")
-        with open(filename,"w") as f:
-            print(bodetikz(H,wlim=(1e-4,1e4),gain_axis=(-20,80,20),phase_axis=(-180,0,20)),file=f)
+        bodetikz(H,filename="tmp2.tex",wlim=(1e-4,1e4),gain_axis=(-20,40,10),phase_axis=(-90,60,10))
 
     if True :
         gain=1000
@@ -32,10 +47,7 @@ if __name__ == "__main__" :
         H=Ftransfert(num=num,den=den,gain=gain,name="H")
         print(f"str : {H}")
         H.info()
-        filename="tmp3.tex"
-        print(f"writing {filename}")
-        with open(filename,"w") as f:
-            print(bodetikz(H,wlim=(1e-4,1e4),gain_axis=(-40,80,10),phase_axis=(0,180,20)),file=f)
+        bodetikz(H,filename="tmp3.tex",wlim=(1e-4,1e4),gain_axis=(-40,80,10),phase_axis=(0,180,20))
 
     if True :
         gain=1000
@@ -44,8 +56,5 @@ if __name__ == "__main__" :
         H=Ftransfert(num=num,den=den,gain=gain,name="H")
         print(f"str : {H}")
         H.info()
-        filename="tmp4.tex"
-        print(f"writing {filename}")
-        with open(filename,"w") as f:
-            print(bodetikz(H,wlim=(1e-4,1e4),gain_axis=(-80,20,20),phase_axis=(-90,180,20)),file=f)
+        bodetikz(H,filename="tmp4.tex",wlim=(1e-4,1e4),gain_axis=(-80,20,20),phase_axis=(-90,180,20))
 

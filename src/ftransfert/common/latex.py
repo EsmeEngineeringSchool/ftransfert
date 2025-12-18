@@ -4,7 +4,18 @@ def sci_latex(x, digits=1):
     if x == 0:
         return r"0"
     mantissa, exp = f"{x:.{digits}e}".split("e")
-    return rf"{mantissa}\cdot 10^{{{int(exp)}}}"
+    inte=int(exp)+1
+    if inte == 0 :
+        return rf"0.{mantissa}"
+    elif inte > -2 and inte < 0:
+        return "0."+abs(inte)*"0"rf"{mantissa}"
+    elif inte < 0 : 
+        return rf"0.{mantissa}\cdot10^{{{inte}}}"
+    else:
+        if inte-1 == 0 :
+            return rf"{mantissa}"
+        else:
+            return rf"{mantissa}\cdot10^{{{inte-1}}}"
 def sci_latex_e(x, digits=1):
     return f"{x:.{digits}e}".replace("e", r"\mathrm{e}")
 # -----------------------------------------------------------------

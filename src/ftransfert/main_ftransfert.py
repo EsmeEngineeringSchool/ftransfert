@@ -1,6 +1,27 @@
 from common.Ftransfert import Ftransfert
 
 if __name__ == "__main__" :
+    if True :
+        gain=1
+        num=[1]
+        den=[1,0]
+        H=Ftransfert(num=num,den=den,gain=gain,name="H")
+        print(H)
+        print(repr(H))
+        print(str(H.latex()))
+        print(H.eval(1j,gain))
+        H.info()
+    if True :
+        gain=1
+        zeros=[]
+        poles=[(0,0)]
+        H=Ftransfert(zeros=zeros,poles=poles,gain=gain,name="H")
+        print(H)
+        print(repr(H))
+        print(str(H.latex()))
+        print(H.eval(1j,gain))
+        H.info()
+
     if False :
         gain=1
         num=lambda p : 1
@@ -12,7 +33,7 @@ if __name__ == "__main__" :
         print(H.eval(1,1))
         H.info()
 
-    if True:
+    if False:
         gain=1
         poles=[]
         zeros=[(-1,0),(-2,0)]

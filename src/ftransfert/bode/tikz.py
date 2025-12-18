@@ -30,7 +30,7 @@ def options_axis(xint,yint,xlabel="",ylabel="",ystep=20):
 def asymptotics_relations(FT):
     gain_relations,phase_relations=[],[]
     i,d=FT.classe
-    allinterval=f"{20*np.log10(FT.gain_static)}"
+    allinterval=f"{20*np.log10(FT.gain)}"
     if i : allinterval+=f"-{20*i}*log10(x)"
     if d : allinterval+=f"+{20*d}*log10(x)"
     gain_relations.append(allinterval)
@@ -86,7 +86,7 @@ def phasetikz(FT,w_intervals,phase_axis,phase_relations,phase_exact):
     return newlines(out) 
 
 
-def bode(FT,latex_document=True,**kwargs):
+def bode(FT,filename,latex_document=True,**kwargs):
     gain_relations,phase_relations=asymptotics_relations(FT)
     wlim=kwargs.get('wlim',None)
     gain_axis=kwargs.get('gain_axis',(-40,40,10))
@@ -144,5 +144,7 @@ def bode(FT,latex_document=True,**kwargs):
     out+=[FT.tablatex(wlim=wlim)]
     if latex_document :
         out+=[end("document")]
-    return newlines(out)
+    with open(filename,"w") as f:
+        print(newlines(out),file=f)
+    return 
 

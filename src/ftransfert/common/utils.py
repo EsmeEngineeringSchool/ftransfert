@@ -1,5 +1,7 @@
 import numpy as np
 import sympy as sp
+TWO_PI=2*np.pi    # 2π
+HALF_PI=0.5*np.pi # π/2
 # class de format d'un float
 class nf(float):
     def __repr__(self):
@@ -41,4 +43,43 @@ def eval_poly_symbol(P,symb):
         expo=len(P)-k-1
         expr+=c*symb**expo
     return expr
+
+# ------------------------------------------------------------------------------
+def atanN(FT,y,x):
+   """
+   Généralisation de la fonction atan2(y,x)
+   pour compter l'indice de la surface de Riemann.
+   note : ça fonctionne mais est-ce que c'est pas un
+   overkill de quelque chose de plus simple.
+   """
+   if x > 0 :
+       N=FT.riemann[0]
+       return np.arctan(y/x)-N*TWO_PI
+   elif x<0 and y>=0 :
+       if FT.riemann[1] == -1 :
+           FT.riemann[0]+=1
+           FT.riemann[1]= 1
+       N=FT.riemann[0]
+       return np.arctan(y/x)+np.pi-N*TWO_PI
+   elif x<0 and y<0 :
+       if FT.riemann[1] == 1 :
+           FT.riemann[0]-=1
+           FT.riemann[1]=-1
+       N=FT.riemann[0]
+       return np.arctan(y/x)-np.pi-N*TWO_PI
+   elif x==0 and y>0 :
+       N=FT.riemann[0]
+       return HALF_PI-N*TWO_PI
+   elif x==0 and y<0 :
+       N=FT.riemann[0]
+       return -HALF_PI-N*TWO_PI
+   elif x==0 and y==0:
+       return
+
+def factorize(poly):
+    for coeff in reversed(poly):
+        if coeff == 0.0 : continue
+        fact = coeff
+        break
+    return [coeff/fact for coeff in poly]
 

@@ -10,7 +10,7 @@
 import numpy as np
 import sympy as sp
 from .string_ import strroot, strpoly, signstr, newlines
-from .utils import multiplicity, eval_poly, eval_poly_symbol, nat2dB, rad2deg
+from .utils import multiplicity, factorize, eval_poly, eval_poly_symbol, nat2dB, rad2deg, atanN,TWO_PI
 
 class Ftransfert():
     """
@@ -19,7 +19,7 @@ class Ftransfert():
         polynômes au numérateur et dénominateur (self.type='function').
     """
     # -----------------------------------------------------------------------------------
-    def __init__(self,zeros=None,poles=None,num=None,den=None,gain=1,classe=(0,0),title='',name="F",verbeux=1):
+    def __init__(self,zeros=None,poles=None,num=None,den=None,gain=1,title='',name="F",verbeux=1):
         self.gain=gain       # gain de la FT
         self.num=num         # polynôme au numérateur
         self.den=den         # polynôme au dénominateur
@@ -43,18 +43,20 @@ class Ftransfert():
         if isinstance(num,list) : self.type="polys"
         assert len(self.type) ,f"aucun type de fonction de tranfert n'est selectionné {self.type}"  
 
+        # classe 
+        self.classe=self.get_classe()
+
         match self.type :
             case "functions":
-                # classe 
-                print(f"Classe n'est pas accessible avec le type 'functions'")
                 # intégrateurs
                 self.integrators= self.den(0.0) == 0.0
                 # w_i (pulsations de ruptures)
                 print("Pas possible pour l'instant d'obtenir les pulsations de ruptures à partir d'une fonction lambda")
                 self.w_i=None
             case "polys" :
-                # classe 
-                self.classe=self.get_classe()
+                self.num=factorize(self.num)
+                self.den=factorize(self.den)
+                print("debug",self.num,self.den)
                 # intégrateurs
                 self.integrators= eval_poly(self.den,0.0) ==0.0
                 # zeros et poles
@@ -69,9 +71,16 @@ class Ftransfert():
                 non_zeros=[abs(p) for p in self.Cpoles if abs(p)>0.0]
                 self.w_i+=multiplicity(non_zeros,-1.0)
                 self.w_i.sort(key=lambda x: x[0])
+                # ------------------------------
+                # gain statique 
+                gnum,gden=1,1
+                for z in self.Czeros :
+                    if abs(z) > 0.0 : gnum/=abs(z)
+                for p in self.Cpoles :
+                    if abs(p) > 0.0 : gden/=abs(p)
+                self.gain_static=self.gain*gnum/gden
+                # ------------------------------
             case "roots" :
-                # classe 
-                self.classe=classe
                 # intégrateurs
                 if len(poles)>0 : self.integrators = not all(self.Cpoles).real!=0
                 # w_i (pulsations de ruptures)
@@ -81,27 +90,26 @@ class Ftransfert():
                 non_zeros=[abs(p) for p in self.Cpoles if abs(p)>0.0]
                 self.w_i+=multiplicity(non_zeros,-1.0)
                 self.w_i.sort(key=lambda x: x[0])
-
-        # ------------------------------
-        # gain statique 
-        gnum,gden=1,1
-        for z in self.Czeros :
-            if abs(z) > 0.0 : gnum*=abs(z)
-        for p in self.Cpoles :
-            if abs(p) > 0.0 : gden*=abs(p)
-        self.gain_static=self.gain*gnum/gden
+                # ------------------------------
+                # gain statique 
+                gnum,gden=1,1
+                for z in self.Czeros :
+                    if abs(z) > 0.0 : gnum/=abs(z)
+                for p in self.Cpoles :
+                    if abs(p) > 0.0 : gden/=abs(p)
+                self.gain_static=self.gain*gnum/gden
         # ------------------------------
         
         # ------------------------------
         # ENCORE UTILE ?
         # options for plotting phase
-        self.phaseWrapping=False
+        self.phaseWrapping=True
         # riemann index,sign
         self.riemann=[0,-1]
         # ------------------------------
 
     # ------------------------------------------------------------------------------
-    def eval(self,p,gain=None):
+    def eval(self,p,gain=1):
         """
         eval:
         Evaluation de la fonction de transfert associée à son type:
@@ -109,11 +117,10 @@ class Ftransfert():
 
             si "functions" : retourne l'évaluation des deux fonctions en p.
             si "roots"    :
-                                           (p-z1)(p-z2) ...
+                                          p^i (p-z1)(p-z2) ...
             retourne l'évaluation de   K -------------------
-                                           (p-p1)(p-p2) ...
+                                          p^d (p-p1)(p-p2) ...
         """
-        if not gain : gain=self.gain 
         match self.type :
             case "functions":
                 if np.any(abs(p) == 0.0) and self.integrators : return
@@ -121,18 +128,29 @@ class Ftransfert():
                 return h,abs(h),np.arctan2(h.imag,h.real)
             case "roots" :
                 h=complex(1,0)
-                phase=0
+                phase=0.
                 for zero in self.Czeros:
+                    if abs(zero) == 0.0 :continue
                     h*=(p-zero)
                     phase+=np.arctan2((p-zero).imag,(p-zero).real)
                 for pole in self.Cpoles:
+                    if abs(pole) == 0.0 :continue
                     h/=(p-pole)
                     phase-=np.arctan2((p-pole).imag,(p-pole).real)
+                i,d = self.classe
+                for k in range(i) : 
+                    h/=p
+                    phase-=np.arctan2(p.imag,p.real)
+                for k in range(d) : 
+                    h*=p
+                    phase+=np.arctan2(p.imag,p.real)
                 h*=gain
+                h*=self.gain_static
                 return h,abs(h),phase
             case "polys" :
                 num,den=eval_poly(self.num,p),eval_poly(self.den,p)
                 h=gain*num/den
+                h*=self.gain
                 return h,np.abs(h),np.angle(h)
     # ------------------------------------------------------------------------------
     # retourne les parties réelles, imaginaires, le module et la phase de la
@@ -145,7 +163,7 @@ class Ftransfert():
             phase=np.zeros(h.shape)
             k=0
             for hi in h:
-                phase[k]=self.atanN(hi.imag,hi.real)
+                phase[k]=atanN(self,hi.imag,hi.real)
                 k+=1
         return h.real,h.imag,mag,phase
     # ------------------------------------------------------------------------------------
@@ -165,7 +183,7 @@ class Ftransfert():
                 for k,p in enumerate(self.Cpoles):
                     if abs(p) == 0.0 : continue 
                     den+=f"-10*log10({p.real**2}+(x+({p.imag}))*(x+({p.imag})))"
-                return f"{20*np.log10(self.gain)}"f"{num}"f"{den}"
+                return f"{20*np.log10(self.gain_static)}"f"{num}"f"{den}"
             case "argument":
                 i,d=self.classe
                 out=""
@@ -214,11 +232,11 @@ class Ftransfert():
                 return "G_{dB}(\omega)="f"{int(20*np.log10(self.gain_static))}"f"{num}"f"{den}" 
             case "module":
                 num,den="{","{"
-                if self.gain_static != 1 : num+=f"{int(self.gain_static)}"""
+                if self.gain_static != 1 : num+=f"{int(self.gain_static)}""\left("
                 if self.type == "polys" :
                     w=sp.Symbol(r"\omega")
-                    num+=sp.latex(sp.simplify(eval_poly_symbol(self.num,w*sp.I).expand()),imaginary_unit="j")
-                    den+=sp.latex(sp.simplify(eval_poly_symbol(self.den,w*sp.I).expand()),imaginary_unit="j")
+                    num+=sp.latex(sp.nsimplify(eval_poly_symbol(self.num,w*sp.I).expand()),imaginary_unit="j")
+                    den+=sp.latex(sp.nsimplify(eval_poly_symbol(self.den,w*sp.I).expand()),imaginary_unit="j")
                 if self.type == "roots":
                     i,d=self.classe
                     powi=f"^{i}"       if i  > 1 else ""
@@ -235,7 +253,7 @@ class Ftransfert():
                                 den+="\sqrt{"f"{re}{im}""}"
                             else :
                                 num+="\sqrt{"f"{re}{im}""}"
-                num+="}"
+                num+="\\right)}"
                 den+="}"
                 if len(den) > 2 :
                     return f"G(\omega)=|H(\jw)|=\dfrac{num}{den}"
@@ -248,20 +266,27 @@ class Ftransfert():
                     out+=f"{int((d-i)*90)}"
                 for k,w in enumerate(self.w_i):
                     m=(int(w[1]) if abs(w[1]) !=1 else signstr(w[1]))
-                    out+=f"{m}""\\arctan{\\frac{\omega}{\omega_"f"{k+1}""}}"
+                    out+=f"{m}""\\arctan{\left(\\frac{\omega}{\omega_"f"{k+1}""}\\right)}"
                 return out
+    def isin_tol(self,x, iterable, rtol=1e-9, atol=0.0):
+        print("debug isin_tol",type(iterable))
+        return any(np.isclose(x, y, rtol=rtol, atol=atol) for y in iterable)
     # ------------------------------------------------------------------------------------
     def tablatex(self,**kwargs):
         class nf(float):
             def __repr__(self):
-                return f'{self:.3f}'
+                return f'{self:12.5f}'
         ws=kwargs.get('ws',None)
         winput=isinstance(ws,np.ndarray)
         wlim=kwargs.get('wlim', (1e-2,1e2))
         n=kwargs.get('n',11)
         # array of pulsations
         if not winput :
-            ws=1j*np.logspace(np.log10(wlim[0]),np.log10(wlim[1]),n)
+            ws_real = np.unique(np.round( np.concatenate((
+                         np.logspace(np.log10(wlim[0]), np.log10(wlim[1]), n),
+                         np.array([w[0] for w in self.w_i])
+                      )),decimals=6))
+            ws=1j*np.sort(ws_real)
         response=self.harmonic_response(ws,self.gain)
         out=["\\begin{center}"]
         out+=["\\begin{tabular}{ccc}"]
@@ -269,7 +294,11 @@ class Ftransfert():
         out+=["$\omega$ (\si{\\radian\per\second}) & Gain (\si{\decibel}) & Phase (\si{\degree})\\\\"]
         out+=["\\hline"]
         for w,m,p in zip(ws,response[2],response[3]):
-            out+=[str(nf(abs(w)))+" & "+str(nf(nat2dB(m)))+" & "+str(nf(rad2deg(p)))+"\\\\"]
+            print("debug",abs(w),list(w_i[0] for w_i in self.w_i))
+            if self.isin_tol(abs(w), (w_i[0] for w_i in self.w_i)) :
+                out+=["\\textbf{"+str(nf(abs(w)))+"} & \\textbf{"+str(nf(nat2dB(m)))+"} & \\textbf{"+str(nf(rad2deg(p)))+"}\\\\"]
+            else:
+                out+=[str(nf(abs(w)))+" & "+str(nf(nat2dB(m)))+" & "+str(nf(rad2deg(p)))+"\\\\"]
             out+=["\\hline"]
         out+=["\end{tabular}"]
         out+=["\\end{center}"]
@@ -277,10 +306,17 @@ class Ftransfert():
 
     #i,d # classe des intégrateurs et dérivateurs
     def get_classe(self):
-        if self.type != "polys" : return 
-        i = next((k for k, c in enumerate(reversed(self.den)) if c != 0.0), None)
-        d = next((k for k, c in enumerate(reversed(self.num)) if c != 0.0), None)
-        return i,d
+        match self.type :
+            case "functions":
+                print(f"Classe n'est pas accessible avec le type 'functions'")
+            case "polys":
+                i = next((k for k, c in enumerate(reversed(self.den)) if c != 0.0), None)
+                d = next((k for k, c in enumerate(reversed(self.num)) if c != 0.0), None)
+                return i,d
+            case "roots":
+                i = sum([1 for z in self.Cpoles if abs(z) == 0.0])
+                d = sum([1 for p in self.Czeros if abs(p) == 0.0])
+                return i,d
 
     # n,m 
     def ordre(self):
@@ -288,8 +324,7 @@ class Ftransfert():
             case "polys":
                 return len(self.den)-1,len(self.num)-1
             case "roots":
-                i,d=self.classe
-                return len(self.Cpoles)+i,len(self.Czeros)+i
+                return len(self.Cpoles),len(self.Czeros)
             case _:
                 print("Impossible de déterminer l'ordre du polynome")
                 return None,None
