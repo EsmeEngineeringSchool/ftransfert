@@ -156,7 +156,7 @@ class Ftransfert():
     # retourne les parties réelles, imaginaires, le module et la phase de la
     # fonction de transfert complexe évaluée en w.
     # Un gain est donné en argument
-    def harmonic_response(self,w,gain):
+    def harmonic_response(self,w,gain=1):
         h,mag,phase=self.eval(w,gain)
         # wrapping matlab like ... il faut calculer la phase à partir de l'évaluation complète
         if self.phaseWrapping :
@@ -287,7 +287,7 @@ class Ftransfert():
                          np.array([w[0] for w in self.w_i])
                       )),decimals=6))
             ws=1j*np.sort(ws_real)
-        response=self.harmonic_response(ws,self.gain)
+        response=self.harmonic_response(ws)
         out=["\\begin{center}"]
         out+=["\\begin{tabular}{ccc}"]
         out+=["\\hline"]

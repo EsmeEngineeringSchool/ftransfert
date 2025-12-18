@@ -17,8 +17,7 @@ def bode(FT,**kwargs):
    n=kwargs.get('n',4096)
    labels=kwargs.get('labels',[None])
    color=kwargs.get('color','tab:blue')
-   gains=kwargs.get('gains',[])
-   gains.insert(0,FT.gain)
+   gains=kwargs.get('gains',[1])
    arrow_pcts=kwargs.get('arrow_pcts',[])
    if len(arrow_pcts)>0 : 
        middle=False
@@ -44,7 +43,7 @@ def bode(FT,**kwargs):
    Y1Bode=[] # GdB(Omega)
    Y2Bode=[] # Phi(Omega)
    for kg,gain in enumerate(gains):
-       _,_,module,arg=FT.harmonic_response(w,gain)
+       _,_,module,arg=FT.harmonic_response(w)
        XBode.append(w)
        Y1Bode.append(nat2dB(module))
        Y2Bode.append(rad2deg(arg))
