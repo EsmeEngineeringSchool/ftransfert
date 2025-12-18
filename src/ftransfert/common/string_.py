@@ -1,3 +1,4 @@
+from common.latex import sci_latex_e,sci_latex
 from fractions import Fraction
 # -----------------------------------------------------------------
 # join lines d'une liste
@@ -17,6 +18,15 @@ def signstr(number):
         return "+" if number.real>0 else "-"
     else:
         return ""
+# -----------------------------------------------------------------
+def absnum(number,latex=False):
+    if isinstance(number,int):
+        return f"{abs(number)}"
+    elif isinstance(number,float) :
+        if latex :
+            return f"{sci_latex(number)}"
+        else:
+            return f"{abs(number):.1e}"
 # -----------------------------------------------------------------
 # -----------------------------------------------------------------
 def absfrac(number,latex=False,imaginary=False):
@@ -68,9 +78,9 @@ def strpoly(poly,latex=False):
         expo=len(poly)-k-1
         if coeff==0.0 :continue
         if k > 0 or coeff<0 :
-            signcoeff=f"{signstr(coeff)}{abs(coeff):.1e}"
+            signcoeff=f"{signstr(coeff)}{absnum(coeff,latex)}"
         else:
-            signcoeff=f"{abs(coeff):.1e}"
+            signcoeff=f"{absnum(coeff,latex)}"
         match expo:
             case 0:
                 strexpo=""

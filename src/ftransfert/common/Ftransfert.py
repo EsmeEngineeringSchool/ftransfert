@@ -46,7 +46,7 @@ class Ftransfert():
         match self.type :
             case "functions":
                 # classe 
-                print(f"classe n'est pas accessible")
+                print(f"Classe n'est pas accessible avec le type 'functions'")
                 # intégrateurs
                 self.integrators= self.den(0.0) == 0.0
                 # w_i (pulsations de ruptures)
@@ -68,6 +68,7 @@ class Ftransfert():
                 self.w_i+=multiplicity(non_zeros,1.0)
                 non_zeros=[abs(p) for p in self.Cpoles if abs(p)>0.0]
                 self.w_i+=multiplicity(non_zeros,-1.0)
+                self.w_i.sort(key=lambda x: x[0])
             case "roots" :
                 # classe 
                 self.classe=classe
@@ -79,8 +80,7 @@ class Ftransfert():
                 self.w_i+=multiplicity(non_zeros,1.0)
                 non_zeros=[abs(p) for p in self.Cpoles if abs(p)>0.0]
                 self.w_i+=multiplicity(non_zeros,-1.0)
-
-        self.w_i.sort(key=lambda x: x[0])
+                self.w_i.sort(key=lambda x: x[0])
 
         # ------------------------------
         # gain statique 

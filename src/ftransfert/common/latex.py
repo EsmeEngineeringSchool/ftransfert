@@ -1,4 +1,12 @@
 import numpy as np
+# notation scientifique en LaTeX
+def sci_latex(x, digits=1):
+    if x == 0:
+        return r"0"
+    mantissa, exp = f"{x:.{digits}e}".split("e")
+    return rf"{mantissa}\cdot 10^{{{int(exp)}}}"
+def sci_latex_e(x, digits=1):
+    return f"{x:.{digits}e}".replace("e", r"\mathrm{e}")
 # -----------------------------------------------------------------
 # join lines d'une liste
 # -----------------------------------------------------------------
