@@ -30,20 +30,23 @@ def multiplicity(L,sign):
         multi.append((l,sign*count))
     return multi
 
+# ------------------------------------------------------------------------------
+# évaluation numérique d'un polynome en x.
+# P(x) 
 def eval_poly(P,x):
     ev=complex(0.0)
     for k,c in enumerate(P):
         expo=len(P)-k-1
         ev+=c*x**expo
     return ev
-
+# ------------------------------------------------------------------------------
+# évaluation symbolique d'un polynome par symb
 def eval_poly_symbol(P,symb):
     expr=0.0
     for k,c in enumerate(P):
         expo=len(P)-k-1
         expr+=c*symb**expo
     return expr
-
 # ------------------------------------------------------------------------------
 def atanN(FT,y,x):
    """
@@ -75,11 +78,19 @@ def atanN(FT,y,x):
        return -HALF_PI-N*TWO_PI
    elif x==0 and y==0:
        return
-
-def factorize(poly):
+# factoriser un polynome par le coefficient non nul 
+# de plus petit degré
+# exemple :
+#   - [1,2,3]   -> [1/3,2/3,1]
+#   - [1,2,3,0] -> [1/3,2/3,1,0]      
+def factorise(poly):
     for coeff in reversed(poly):
         if coeff == 0.0 : continue
         fact = coeff
         break
     return [coeff/fact for coeff in poly]
-
+# test si une valeur x est dans un iterable à avec certaine tolérance
+# absolute(a - b) <= (atol + rtol * absolute(b))
+# c.f np.isclose
+def isin_tol(x, iterable, rtol=1e-9, atol=0.0):
+    return any(np.isclose(x, y, rtol=rtol, atol=atol) for y in iterable)
