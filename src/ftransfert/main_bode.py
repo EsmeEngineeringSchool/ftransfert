@@ -1,3 +1,4 @@
+import subprocess 
 import numpy as np
 from common.Ftransfert import Ftransfert
 from bode.plot import bode as bodeplot
@@ -11,15 +12,24 @@ if __name__ == "__main__" :
         A=np.polymul([1,10],[1,2])
         A=np.polymul(A,[1,0])
         den=list(map(int,A))
+        xlim,y1lim,y2lim=(1e-2,1e2),(-80,80),(-180,0)
         H=Ftransfert(num=num,den=den,gain=gain,name="H")
-        bodeplot(H,xlim=(1e-2,1e2),y1lim=(-40,40),y2lim=(-180,0),n=1024)
-        bodetikz(H,filename="example_bodetikz_1.tex",wlim=(1e-2,1e2),gain_axis=(-40,40,10),phase_axis=(-180,0,20),n=1024)
+        bodeplot(H,xlim=xlim,y1lim=y1lim,y2lim=y2lim,n=1024)
+        filename="example_bodetikz_1.tex"
+        bodetikz(H,filename=filename,xlim=xlim,y1lim=y1lim,y2lim=y2lim)
+        result = subprocess.run( ["pdflatex", filename], capture_output=True)
+        if result.returncode : print("erreur de compilation pdflatex")
+
 
     if True :
         gain=4
         zeros=[(-1,0)]
         poles=[(0,0),(-10,0),(-2,0)]
         H=Ftransfert(zeros=zeros,poles=poles,gain=gain,name="H")
-        bodeplot(H,xlim=(1e-2,1e2),y1lim=(-40,40),y2lim=(-180,0),n=1024,color="tab:green")
-        bodetikz(H,filename="example_bodetikz_2.tex",wlim=(1e-2,1e2),gain_axis=(-40,40,10),phase_axis=(-180,0,20),n=1024)
+        xlim,y1lim,y2lim=(1e-2,1e2),(-80,80),(-180,0)
+        bodeplot(H,xlim=xlim,y1lim=y1lim,y2lim=y2lim,n=1024)
+        filename="example_bodetikz_2.tex"
+        bodetikz(H,filename=filename,xlim=xlim,y1lim=y1lim,y2lim=y2lim)
+        result = subprocess.run( ["pdflatex", filename], capture_output=True)
+        if result.returncode : print("erreur de compilation pdflatex")
 
