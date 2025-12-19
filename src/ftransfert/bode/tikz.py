@@ -88,13 +88,15 @@ def phasetikz(FT,w_intervals,phase_axis,phase_relations,phase_exact):
 
 def bode(FT,filename,latex_document=True,**kwargs):
     gain_relations,phase_relations=asymptotics_relations(FT)
-    wlim=kwargs.get('wlim',None)
-    gain_axis=kwargs.get('gain_axis',(-40,40,10))
-    phase_axis=kwargs.get('phase_axis',(-90,90,5))
+    xlim=kwargs.get('xlim',(1e-2,1e2))
+    y1lim=kwargs.get('y1lim',(-40,40))
+    y2lim=kwargs.get('y2lim',(-90,90))
+    gain_axis=(*y1lim,(y1lim[1]-y1lim[0])//10)
+    phase_axis=(*y2lim,(y2lim[1]-y2lim[0])//10)
     omegas=[]
-    omegas.append(wlim[0])
+    omegas.append(xlim[0])
     omegas+=[w for w,m in FT.w_i]
-    omegas.append(wlim[1])
+    omegas.append(xlim[1])
     w_intervals=[]
     for k in range(len(omegas)-1):
         w_intervals.append((omegas[k],omegas[k+1]))
@@ -141,7 +143,7 @@ def bode(FT,filename,latex_document=True,**kwargs):
     out+=[endmathdisplay()]
     # Tableau des valeurs particulières 
     out+=[macro("paragraph","Quelques valeurs particulières calculées")]
-    out+=[FT.tablatex(wlim=wlim)]
+    out+=[FT.tablatex(wlim=xlim)]
     if latex_document :
         out+=[end("document")]
     with open(filename,"w") as f:
