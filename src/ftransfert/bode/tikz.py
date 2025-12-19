@@ -1,12 +1,13 @@
 import sys
 import numpy as np
+import math
 from ftransfert.common.latex import beginmathdisplay,endmathdisplay,macro,begin,end,draw,tick,ticklabels
 from ftransfert.common.string_ import newlines
 
 # ---------------------------------------------------------------
 # options des axes du pgfplot/tikz
 # ---------------------------------------------------------------
-def options_axis(xint,yint,xlabel="",ylabel="",ystep=20):
+def options_axis(xint,yint,xtick=True,xlabel="",ylabel="",ystep=20):
     xmin,xmax=xint
     ymin,ymax=yint
     out=["ticklabel style = {font=\\normalsize},"]
@@ -18,7 +19,8 @@ def options_axis(xint,yint,xlabel="",ylabel="",ystep=20):
     out+=["xmode=log,ymode=normal,"]
     out+=["xlabel={"f"{xlabel}""},"]
     out+=["ylabel={"f"{ylabel}""},"]
-    out+=[f"xtick={tick(xmin,xmax,sequence='geometric')},"]
+    if xtick :
+        out+=[f"xtick={tick(xmin,xmax,sequence='geometric')},"]
     out+=[f"ytick={tick(ymin,ymax,sequence='arithmetic',raison=ystep)},"]
     out+=[f"xticklabels={ticklabels(xmin,xmax)},"]
     out+=[f"yticklabels={ticklabels(ymin,ymax,sequence='not_geometric',raison=ystep)},"]
@@ -48,6 +50,7 @@ def gaintikz(FT,w_intervals,gain_axis,gain_relations,gain_exact):
     out=[begin("tikzpicture",options="trim axis left")]
     out+=[begin("axis",options=options_axis((xmin,xmax),\
                                             (ymin,ymax),\
+                                             xtick=False,
                                              ylabel="Gain (\si{\decibel})",
                                              ystep=gain_step))]
     out+=[macro("addplot",options=f"ultra thick, blue,domain={xmin}:{xmax},samples=256",value=gain_exact,semicolon=True)]
@@ -91,7 +94,7 @@ def bode(FT,filename,latex_document=True,**kwargs):
     xlim=kwargs.get('xlim',(1e-2,1e2))
     y1lim=kwargs.get('y1lim',(-40,40))
     y2lim=kwargs.get('y2lim',(-90,90))
-    gain_axis=(*y1lim,(y1lim[1]-y1lim[0])//10)
+    gain_axis=(*y1lim,math.ceil((y1lim[1]-y1lim[0])//10))
     phase_axis=(*y2lim,(y2lim[1]-y2lim[0])//10)
     omegas=[]
     omegas.append(xlim[0])
@@ -146,7 +149,9 @@ def bode(FT,filename,latex_document=True,**kwargs):
     out+=[FT.tablatex(wlim=xlim)]
     if latex_document :
         out+=[end("document")]
-    with open(filename,"w") as f:
-        print(newlines(out),file=f)
-    return 
+    if filename :
+        with open(filename,"w") as f:
+            print(newlines(out),file=f)
+    else:
+        return newlines(out)
 
