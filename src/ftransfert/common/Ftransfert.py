@@ -10,7 +10,7 @@
 import numpy as np
 import sympy as sp
 from .string_ import strroot, strpoly, signstr, newlines
-from .utils import multiplicity, factorize, eval_poly, eval_poly_symbol, nat2dB, rad2deg, atanN,TWO_PI
+from .utils import multiplicity, factorise, eval_poly, eval_poly_symbol, nat2dB, rad2deg, atanN,TWO_PI,isin_tol
 
 class Ftransfert():
     """
@@ -54,9 +54,8 @@ class Ftransfert():
                 print("Pas possible pour l'instant d'obtenir les pulsations de ruptures à partir d'une fonction lambda")
                 self.w_i=None
             case "polys" :
-                self.num=factorize(self.num)
-                self.den=factorize(self.den)
-                print("debug",self.num,self.den)
+                self.num=factorise(self.num)
+                self.den=factorise(self.den)
                 # intégrateurs
                 self.integrators= eval_poly(self.den,0.0) ==0.0
                 # zeros et poles
@@ -217,8 +216,10 @@ class Ftransfert():
             case "moduledB" :
                 num,den="",""
                 i,d=self.classe
-                si=f"-({20*i})\\log\omega" if i != 0 else ""
-                sd=f"+({20*d})\\log\omega" if d != 0 else ""
+                signi=f"-{abs(20*i)}"       if 20*i  < 0 else f"+{abs(20*i)}"
+                signd=f"-{abs(20*d)}"       if 20*d  < 0 else f"+{abs(20*d)}"
+                si   =f"{signi}\\log\omega" if    i != 0 else ""
+                sd   =f"{signd}\\log\omega" if    d != 0 else ""
                 den+=f"{si}"
                 num+=f"{sd}"
                 for k,w in enumerate(self.w_i):
@@ -242,7 +243,7 @@ class Ftransfert():
                     powi=f"^{i}"       if i  > 1 else ""
                     powd=f"^{d}"       if d  > 1 else ""
                     si=f"\omega{powi}" if i != 0 else ""
-                    sd=f"\omega{powd}" if i != 0 else ""
+                    sd=f"\omega{powd}" if d != 0 else ""
                     den+=f"{si}"
                     num+=f"{sd}"
                     for k,w in enumerate(self.w_i):
@@ -268,9 +269,6 @@ class Ftransfert():
                     m=(int(w[1]) if abs(w[1]) !=1 else signstr(w[1]))
                     out+=f"{m}""\\arctan{\left(\\frac{\omega}{\omega_"f"{k+1}""}\\right)}"
                 return out
-    def isin_tol(self,x, iterable, rtol=1e-9, atol=0.0):
-        print("debug isin_tol",type(iterable))
-        return any(np.isclose(x, y, rtol=rtol, atol=atol) for y in iterable)
     # ------------------------------------------------------------------------------------
     def tablatex(self,**kwargs):
         class nf(float):
@@ -294,8 +292,7 @@ class Ftransfert():
         out+=["$\omega$ (\si{\\radian\per\second}) & Gain (\si{\decibel}) & Phase (\si{\degree})\\\\"]
         out+=["\\hline"]
         for w,m,p in zip(ws,response[2],response[3]):
-            print("debug",abs(w),list(w_i[0] for w_i in self.w_i))
-            if self.isin_tol(abs(w), (w_i[0] for w_i in self.w_i)) :
+            if isin_tol(abs(w), (w_i[0] for w_i in self.w_i)) :
                 out+=["\\textbf{"+str(nf(abs(w)))+"} & \\textbf{"+str(nf(nat2dB(m)))+"} & \\textbf{"+str(nf(rad2deg(p)))+"}\\\\"]
             else:
                 out+=[str(nf(abs(w)))+" & "+str(nf(nat2dB(m)))+" & "+str(nf(rad2deg(p)))+"\\\\"]
