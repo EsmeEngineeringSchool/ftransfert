@@ -1,5 +1,5 @@
-from .latex import sci_latex_e,sci_latex
 from fractions import Fraction
+from .latex import sci_latex_e,sci_latex
 # -----------------------------------------------------------------
 # join lines d'une liste
 # -----------------------------------------------------------------

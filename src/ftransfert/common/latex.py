@@ -1,5 +1,12 @@
 import numpy as np
+# -----------------------------------------------------------------
+# join lines d'une liste
+# -----------------------------------------------------------------
+def concatenate(lines):
+    return "".join(lines)
+# -----------------------------------------------------------------
 # notation scientifique en LaTeX
+# -----------------------------------------------------------------
 def sci_latex(x, digits=1):
     if x == 0:
         return r"0"
@@ -19,15 +26,7 @@ def sci_latex(x, digits=1):
 def sci_latex_e(x, digits=1):
     return f"{x:.{digits}e}".replace("e", r"\mathrm{e}")
 # -----------------------------------------------------------------
-# join lines d'une liste
 # -----------------------------------------------------------------
-def concatenate(lines):
-    return "".join(lines)
-# -----------------------------------------------------------------
-# applique \n à un ensemble de chaines dans une liste
-# -----------------------------------------------------------------
-def newlines(lines):
-    return "\n".join(lines)
 def beginmathdisplay():
     return "\["
 def endmathdisplay():
