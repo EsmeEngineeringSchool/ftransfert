@@ -5,3 +5,5 @@ __pycache__/
 **/tmp*.pdf
 **/tmp*.aux
 **/tmp*.log
+**/*.aux
+**/*.log
