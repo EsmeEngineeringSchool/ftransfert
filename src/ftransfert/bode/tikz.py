@@ -50,7 +50,7 @@ def gaintikz(FT,w_intervals,gain_axis,gain_relations,gain_exact):
     out=[begin("tikzpicture",options="trim axis left")]
     out+=[begin("axis",options=options_axis((xmin,xmax),\
                                             (ymin,ymax),\
-                                             xtick=False,
+                                             xtick=True,
                                              ylabel="Gain (\si{\decibel})",
                                              ystep=gain_step))]
     out+=[macro("addplot",options=f"ultra thick, blue,domain={xmin}:{xmax},samples=256",value=gain_exact,semicolon=True)]

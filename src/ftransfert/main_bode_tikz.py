@@ -11,7 +11,7 @@ if __name__ == "__main__" :
         den=list(map(int,A))
         H=Ftransfert(num=num,den=den,gain=gain,name="H")
         print(H)
-        bodetikz(H,filename="example_bodetikz_1.tex",wlim=(1e-2,1e2),gain_axis=(-40,40,10),phase_axis=(-180,0,20),n=1024)
+        bodetikz(H,filename="example_bodetikz_1.tex",xlim=(1e-2,1e2),y1lim=(-40,40),y2lim=(-180,0),n=1024)
 
     if True :
         gain=2

@@ -10,6 +10,8 @@
 import numpy as np
 import sympy as sp
 from .string_ import strroot, strpoly, signstr, newlines
+from .latex import strroot as strroot_latex
+from .latex import strpoly as strpoly_latex
 from .utils import multiplicity, factorise, eval_poly, eval_poly_symbol, nat2dB, rad2deg, atanN,TWO_PI,isin_tol
 
 class Ftransfert():
@@ -200,19 +202,19 @@ class Ftransfert():
             case "p" :
                 match self.type :
                     case "roots":
-                        if len(strroot(self.Cpoles,latex=True)):
+                        if len(strroot_latex(self.Cpoles)):
                             return "\\boldsymbol{"f"{self.name}""(p)="f"{self.gain}""\\dfrac{"\
-                                                  f"{strroot(self.Czeros,latex=True)}""}{"\
-                                                  f"{strroot(self.Cpoles,latex=True)}""}}"
+                                                  f"{strroot_latex(self.Czeros)}""}{"\
+                                                  f"{strroot_latex(self.Cpoles)}""}}"
                         else:
                             return "\\boldsymbol{"f"{self.name}""(p)="f"{self.gain}"\
-                                                  f"{strroot(self.Czeros,latex=True)}""}"
+                                                  f"{strroot_latex(self.Czeros)}""}"
 
                     case "polys":
                         gain_shown=self.gain if self.gain !=1 else ""
                         return "\\boldsymbol{"f"{self.name}""(p)="f"{gain_shown}""\\dfrac{"\
-                                              f"{strpoly(self.num,latex=True)}""}{"\
-                                              f"{strpoly(self.den,latex=True)}""}}"
+                                              f"{strpoly_latex(self.num)}""}{"\
+                                              f"{strpoly_latex(self.den)}""}}"
             case "moduledB" :
                 num,den="",""
                 i,d=self.classe

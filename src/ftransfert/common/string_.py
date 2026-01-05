@@ -1,15 +1,12 @@
 from fractions import Fraction
-from .latex import sci_latex_e,sci_latex
 # -----------------------------------------------------------------
 # join lines d'une liste
 # -----------------------------------------------------------------
-def concatenate(lines):
-    return "".join(lines)
+def concatenate(lines): return "".join(lines)
 # -----------------------------------------------------------------
 # applique \n à un ensemble de chaines dans une liste
 # -----------------------------------------------------------------
-def newlines(lines):
-    return "\n".join(lines)
+def newlines(lines): return "\n".join(lines)
 # -----------------------------------------------------------------
 # retourne le signe d'un nombre +,- 
 # -----------------------------------------------------------------
@@ -19,27 +16,20 @@ def signstr(number):
     else:
         return ""
 # -----------------------------------------------------------------
-def absnum(number,latex=False):
+def absnum(number):
     if isinstance(number,int):
         return f"{abs(number)}"
     elif isinstance(number,float) :
-        if latex :
-            return f"{sci_latex(number,digits=0)}"
-        else:
-            return f"{abs(number):.1e}"
+        return f"{abs(number):.1e}"
 # -----------------------------------------------------------------
-# -----------------------------------------------------------------
-def absfrac(number,latex=False,imaginary=False):
+def absfrac(number,imaginary=False):
     n=abs(number)
     num,den=Fraction(n).limit_denominator().as_integer_ratio()
     j=f"{'j' if imaginary else ''}"
     if num == 0 and imaginary :   return ""
     if den > 1 :
         if num == 1 and imaginary :   num,j="j",""
-        if latex :
-            return "\\dfrac{"f"{num}""}""{"f"{den}""}"f"{j}"
-        else:
-            return f"({num}/{den}){j}"
+        return f"({num}/{den}){j}"
     else:
         if num == 1 and imaginary :   num,j="j",""
         return f"{num}{j}"
@@ -47,40 +37,38 @@ def absfrac(number,latex=False,imaginary=False):
 # retourne la chaine de la fraction de la valeur absolue des parties réelles et imaginaires
 # si la partie imaginaire est égale à 1 on retourne simplement j
 # -----------------------------------------------------------------
-def strc(root,latex=False):
+def strc(root):
     if abs(root.imag) > 0 :
-        return (absfrac(root.real,latex=latex),absfrac(root.imag,latex=latex,imaginary=True))
+        return (absfrac(root.real),absfrac(root.imag,imaginary=True))
     else:
-        return (absfrac(root.real,latex),'') 
+        return (absfrac(root.real),'') 
 # -----------------------------------------------------------------
 # retourne la chaine de caractères du produit 
 # de toute les racines (poles ou zeros)
 # (p-racine_1)(p-racine_2)...(p-racine_n)
 # -----------------------------------------------------------------
-def strroot(roots,latex=False):
+def strroot(roots):
     out=''
     for root in roots:
-        r,i=strc(root,latex)
-        out+="(" if not latex else "\\left("
-        if len(i) and latex : out+="\\left("
+        r,i=strc(root)
+        out+="(" 
         out+=f"p{signstr(-root.real) if root.real !=0 else '+'}{r}"
-        if len(i) and latex : out+="\\right)"
         out+=f"{signstr(-root.imag)}{i}"
-        out+=")" if not latex else "\\right)"
+        out+=")"
     return out
 # -----------------------------------------------------------------
 # retourne la chaine de caractères du polynome 
 # coeff_k p^k + -racine_1)(p-racine_2)...(p-racine_n)
 # -----------------------------------------------------------------
-def strpoly(poly,latex=False):
+def strpoly(poly):
     out=[]
     for k,coeff in enumerate(poly):
         expo=len(poly)-k-1
         if coeff==0.0 :continue
         if k > 0 or coeff < 0:
-            signcoeff=f"{signstr(coeff)}{absnum(coeff,latex)}"
+            signcoeff=f"{signstr(coeff)}{absnum(coeff)}"
         else:
-            signcoeff=f"{absnum(coeff,latex)}"
+            signcoeff=f"{absnum(coeff)}"
         match expo:
             case 0:
                 strexpo=""
@@ -92,4 +80,4 @@ def strpoly(poly,latex=False):
                 strexpo=f"p^{expo}"
                 strcoeff=f"{signcoeff if coeff!=1 else ''}"
         out+=[f"{strcoeff}{strexpo}"]
-    return "".join(out)
+    return concatenate(out)
