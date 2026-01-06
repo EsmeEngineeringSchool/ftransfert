@@ -10,7 +10,7 @@ from ftransfert.common.latex      import concatenate, newlines, macro, begin, en
 from ftransfert.common.latex      import pmatrix as display_pmatrix 
 from ftransfert.common.latex      import multi_dot as display_multi_dot
 
-class SymbolRLC():
+class SymbolsRLC():
     # quad est une instance de la classe Quad
     def __init__(self,quad):
         # -----------------------------------------------------------------
@@ -24,13 +24,13 @@ class SymbolRLC():
         self.counting={"R":0,"C":0,"L":0}
         for k, (serie,shunt) in enumerate(zip(quad.series,quad.shunts)):
             self.counting[serie]+=1
-            self.add_symbol(serie+str(cc[serie]))
+            self.add_symbol(serie+str(self.counting[serie]))
             if k < quad.nquad - 1 : 
                 self.counting[shunt]+=1
-                self.add_symbol(shunt+str(cc[shunt]))
-        for composant in shunts[-1]:
+                self.add_symbol(shunt+str(self.counting[shunt]))
+        for composant in quad.shunts[-1]:
             self.counting[composant]+=1
-            self.add_symbol(composant+str(cc[composant]))
+            self.add_symbol(composant+str(self.counting[composant]))
     # -----------------------------------------------------------------
     # Ajouter un symbol au dictionnaire des symboles si on ajoute R1
     # ZR1, YR1, R1 sont ajoutés
@@ -55,7 +55,7 @@ class SymbolRLC():
     #   LX -> LX
     # ----------------------------------------------------------
     def substitutions(self,equal=False):
-        self.substitution={}
+        substitution={}
         p=self.symbols["p"]
         for symb in self.symbols.keys():
             if symb in "pRLC" : continue 
@@ -81,21 +81,30 @@ class SymbolRLC():
                         case "L" :
                             sub = 1/self.symbols["L"f"{index}"]*p   if not equal else 1/(self.symbols["L"]*p)
                 case _ :
-                    sub = self.symbols[symb]
-            self.substitution.update({symb : sub})
-    # ---------------------------------------------------------
+                    sub = self.symbols[symb] if not equal else self.symbols[symb[0]]
+            substitution.update({symb : sub})
+        return substitution
+    # -----------------------------------------------------------------
     # appliquer toutes les substitutions dans le dictionnaire substitutions
     # -----------------------------------------------------------------
-    def apply_sub(self,expr):
+    def apply_sub(self,expr,substitution):
         for symb in self.symbols.keys():
             if symb in "pRLC" : continue
-            expr = expr.subs(self.symbols[symb],self.substitutions[symb])
+            expr = expr.subs(self.symbols[symb],substitution[symb])
         return expr
+# -----------------------------------------------------------------
 class Quad():
     def __init__(self,nquad,composants):
         self.nquad=nquad
         self.composants=composants
+        self.series=None
+        self.shunts=None
+    def gen_symbols(self):
+        self.symbolsRLC = SymbolsRLC(self)
     # -----------------------------------------------------------------
+    def get_hash(self):
+        if self.series == None or self.shunts == None : return 
+        return hash(tuple(self.series+self.shunts))
     # -----------------------------------------------------------------
     def random(self):
         series,shunts=[],[]
@@ -119,7 +128,7 @@ class Quad():
     #   * ----------- * ---- * ----------- * --- *
     # si dernier quadripole SHUNT peut être doublé 
     # -----------------------------------------------------------------
-    def quad(self,index,serie="R",shunt="R",first=False,last=False,):
+    def tikz(self,index,serie="R",shunt="R",first=False,last=False,):
         e,s=1,2
         out =[begin("scope","shift={("f"{4*index}"",0)}")]
         out+=[macro("draw")]
@@ -151,7 +160,7 @@ class Quad():
     #   * ----------- * ---- * ----------- * ------ *
     # si dernier quadripole SHUNT peut être doublé 
     # -----------------------------------------------------------------
-    def quad_diff(self,index,counting,serie="R",shunt="R",first=False,last=False):
+    def tikz_diff(self,index,counting,serie="R",shunt="R",first=False,last=False):
         e,s=1,2
         out=[begin("scope","shift={("f"{4*index}"",0)}")]
         out+=[macro("draw")]
@@ -194,70 +203,70 @@ class Quad():
                 return sp.Matrix([[1,Z],[0,1]])
             case "shunt" :
                 return sp.Matrix([[1,0],[1/Z,1]])
-
-
-# -----------------------------------------------------------------
-# produire un document latex
-# -----------------------------------------------------------------
-def gentikz(page,series,shunts,symbols,composants):
-    substitutions=get_substitutions(symbols)
-    substitutions_equal=get_substitutions_equal(symbols)
-    assert len(series)==len(shunts), f"la taille de series et shunts doit être la même {len(series)} {len(shunts)}"
-    h=hash(tuple(series+shunts))
-    out=[macro("section*",f"Quadripole {composants} {page} {h:12x}")]
-    out+=[begin("center")]
-    out+=[begin("circuitikz","european resistors,straight voltages")]
-    n=len(series)
-    transfert_matrices=[]
-    cc={"R":0,"C":0,"L":0}
-    for k,(serie,shunt) in enumerate(zip(series,shunts)):
-        cc[serie]+=1
-        transfert_matrices.append(transfert_matrix(symbols[f"Z{serie}{cc[serie]}"],qtype="serie"))
-        if k < n-1 :
-            cc[shunt]+=1
-            transfert_matrices.append(transfert_matrix(symbols[f"Z{shunt}{cc[shunt]}"],qtype="shunt"))
-        out+=[quad_diff(n,k,cc,serie=serie,shunt=shunt,first=k==0,last=k==n-1)]
-    out+=[end("circuitikz")]
-    out+=[end("center")]
-    transfert_matrix_product = reduce(lambda x, y: x * y, transfert_matrices)
-    out+=["\["]
-    out+=["\prod_i T_i = "+ display_multi_dot(transfert_matrices)]
-    out+=["\]"]
-    out+=["\["]
-    out+=["T_{\mathrm{total}}="+display_pmatrix(transfert_matrix_product)]
-    out+=["\]"]
-    add_admittance_out=[]
-    for composant in shunts[-1]:
-        cc[composant]+=1
-        add_admittance_out.append(symbols[f"Y{composant}{cc[composant]}"])
-    Ych=sum(add_admittance_out)
-    Ych=apply_sub(Ych,symbols,substitutions)
-    out+=["\["]
-    out+=["Y_{CH}="+"+".join(f"Y_{sym}" for sym in shunts[-1])+"="+sp.latex(Ych)]
-    out+=["\]"]
-    expr=(transfert_matrix_product[0,0]+transfert_matrix_product[0,1]*Ych)
-    expr=apply_sub(expr,symbols,substitutions)
-    expr=sp.expand((1/expr))
-    out+=["\["]
-    out+=["H(p)="+sp.latex(sp.simplify(expr))]
-    out+=["\]"]
-    out+=[macro("newline")]
-    out+=[macro("newline")]
-    out+=[macro("newline")]
-    out+=[macro("newline")]
-    out+=[begin("center")]
-    out+=[begin("circuitikz","european resistors,straight voltages")]
-    for k,(serie,shunt) in enumerate(zip(series,shunts)):
-        out+=[quad(n,k,serie=serie,shunt=shunt,first=k==0,last=k==n-1)]
-    out+=[end("circuitikz")]
-    out+=[end("center")]
-    expr=apply_sub(expr,symbols,substitutions_equal)
-    out+=["\["]
-    out+=["H(p)="+sp.latex(sp.simplify(expr))]
-    out+=["\]"]
-    num, den = sp.together(expr).as_numer_denom()
-    print(expr,num,den)
-    return newlines(out),(num,den)
+    # -----------------------------------------------------------------
+    # produire un document latex
+    # -----------------------------------------------------------------
+    def gentikz(self,page):
+        substitutions=self.symbolsRLC.substitutions(False)
+        substitutions_equal=self.symbolsRLC.substitutions(True)
+        print("NON EQUAL",substitutions)
+        print("EQUAL",substitutions_equal)
+        assert len(self.series)==len(self.shunts), f"la taille de series et shunts doit être la même {len(series)} {len(shunts)}"
+        out=[macro("section*",f"Quadripole {composants} {page} {self.get_hash():12x}")]
+        out+=[begin("center")]
+        out+=[begin("circuitikz","european resistors,straight voltages")]
+        n=len(self.series)
+        transfert_matrices=[]
+        cc={"R":0,"C":0,"L":0}
+        for k,(serie,shunt) in enumerate(zip(self.series,self.shunts)):
+            cc[serie]+=1
+            transfert_matrices.append(self.transfert_matrix(self.symbolsRLC.symbols[f"Z{serie}{cc[serie]}"],qtype="serie"))
+            if k < n-1 :
+                cc[shunt]+=1
+                transfert_matrices.append(self.transfert_matrix(self.symbolsRLC.symbols[f"Z{shunt}{cc[shunt]}"],qtype="shunt"))
+            out+=[self.tikz_diff(k,cc,serie=serie,shunt=shunt,first=k==0,last=k==n-1)]
+        out+=[end("circuitikz")]
+        out+=[end("center")]
+        transfert_matrix_product = reduce(lambda x, y: x * y, transfert_matrices)
+        out+=["\["]
+        out+=["\prod_i T_i = "+ display_multi_dot(transfert_matrices)]
+        out+=["\]"]
+        out+=["\["]
+        out+=["T_{\mathrm{total}}="+display_pmatrix(transfert_matrix_product)]
+        out+=["\]"]
+        add_admittance_out=[]
+        for composant in self.shunts[-1]:
+            cc[composant]+=1
+            add_admittance_out.append(self.symbolsRLC.symbols[f"Y{composant}{cc[composant]}"])
+        Ych=sum(add_admittance_out)
+        Ych=self.symbolsRLC.apply_sub(Ych,substitutions)
+        out+=["\["]
+        out+=["Y_{CH}="+"+".join(f"Y_{sym}" for sym in self.shunts[-1])+"="+sp.latex(Ych)]
+        out+=["\]"]
+        expr=(transfert_matrix_product[0,0]+transfert_matrix_product[0,1]*Ych)
+        expr=self.symbolsRLC.apply_sub(expr,substitutions)
+        expr=sp.expand((1/expr))
+        out+=["\["]
+        out+=["H(p)="+sp.latex(sp.simplify(expr))]
+        out+=["\]"]
+        out+=[macro("newline")]
+        out+=[macro("newline")]
+        out+=[macro("newline")]
+        out+=[macro("newline")]
+        out+=[begin("center")]
+        out+=[begin("circuitikz","european resistors,straight voltages")]
+        for k,(serie,shunt) in enumerate(zip(self.series,self.shunts)):
+            out+=[self.tikz(k,serie=serie,shunt=shunt,first=k==0,last=k==n-1)]
+        out+=[end("circuitikz")]
+        out+=[end("center")]
+        expr=self.symbolsRLC.apply_sub(expr,substitutions_equal)
+        print("EXPR",expr,substitutions_equal)
+        out+=["\["]
+        out+=["H(p)="+sp.latex(sp.simplify(expr))]
+        out+=["\]"]
+        num, den = sp.together(expr).as_numer_denom()
+        print(expr,num,den)
+        return newlines(out),(num,den)
 
 # -----------------------------------------------------------------------------
 def gen_main_latex_document(nquad,npages,composants):
@@ -284,24 +293,26 @@ def gen_main_latex_document(nquad,npages,composants):
         # ---------------------------------------------------------------
         # on vérifie le hash de l'enchainement de composants
         # on veut tester que tous les composants sont bien représentés
-        h=hash(tuple(series+shunts))
         s=set()
-        for c in series+shunts: s |= set(c)
-        if h in deja_fait or len(composants) > len(s) : continue
+        for c in quad.series+quad.shunts: s |= set(c)
+        if quad.get_hash() in deja_fait or len(composants) > len(s) : continue
         #on ajouter à l'ensemble des hash déjà produit
-        deja_fait.add(h)
+        deja_fait.add(quad.get_hash())
         # ---------------------------------------------------------------
         # on génère les symboles pour le calcul symbolique sympy
-        symbols=get_symbols(series,shunts)
+        quad.gen_symbols()
+        print("all symbols",quad.symbolsRLC.symbols)
         # on ajoute la page du quadrupole en tikz + formules
-        tikz,(num,den) = gentikz(page,series,shunts,symbols,composants)
-        num_poly = sp.Poly(sp.expand(num), symbols['p']).all_coeffs()
-        den_poly = sp.Poly(sp.expand(den), symbols['p']).all_coeffs()
+        tikz,(num,den) = quad.gentikz(page)
+        num_poly = sp.Poly(sp.expand(num), quad.symbolsRLC.symbols['p']).all_coeffs()
+        den_poly = sp.Poly(sp.expand(den), quad.symbolsRLC.symbols['p']).all_coeffs()
+        print("num,den poly",num_poly,den_poly)
         gain=1
-        R,C,L=10000,1e-6,0.001
-        evaluation={symbols['R']: R, symbols['C']: C, symbols['L']:L}
-        evalnum=[float(c.evalf(subs={symbols['R']: R, symbols['C']: C, symbols['L']:L})) for c in num_poly]
-        evalden=[float(c.evalf(subs={symbols['R']: R, symbols['C']: C, symbols['L']:L})) for c in den_poly]
+        R,C,L=1000,1e-6,0.001
+        evaluation={ quad.symbolsRLC.symbols['R']: R, quad.symbolsRLC.symbols['C']: C, quad.symbolsRLC.symbols['L']:L}
+        print(num_poly[0].evalf(subs=evaluation))
+        evalnum=[float(c.evalf(subs=evaluation)) for c in num_poly]
+        evalden=[float(c.evalf(subs=evaluation)) for c in den_poly]
         print(evalnum,evalden,file=sys.stderr)
         H=Ftransfert(num=evalnum,den=evalden,gain=gain,name="H")
         H.info()
@@ -317,7 +328,7 @@ def gen_main_latex_document(nquad,npages,composants):
         out+=["L=\SI{"f"{L}""}""{\henry}"]
         out+=["\]"]
         out+=[macro("clearpage")]
-        # déterminations automatiques des intervalles xlim,y1lim,y2lim
+        # estimation automatique des intervalles xlim,y1lim,y2lim
         # à partir des valeurs de R,C,L
         w=[R/L,1/(R*C),1/(L*C)**0.5] 
         xlim=(10**round(math.log10(min(w)/1000)),10**round(math.log10(1000*max(w))))
