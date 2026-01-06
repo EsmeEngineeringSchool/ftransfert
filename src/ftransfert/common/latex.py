@@ -1,4 +1,5 @@
 import numpy as np
+import sympy as sp
 from fractions import Fraction
 # -----------------------------------------------------------------
 # join lines d'une liste
@@ -187,7 +188,7 @@ def ticklabels(xmin,xmax,sequence="geometric",raison=10):
     out+="}"
     return concatenate(out)
 # -----------------------------------------------------------------
-# Display matrix
+# Display SP.matrix
 # -----------------------------------------------------------------
 def pmatrix(matrix):
     out=[begin("pmatrix")]
@@ -204,7 +205,7 @@ def pmatrix(matrix):
 def multi_dot(matrices):
     out=[]
     for matrix in matrices :
-        out+=[display_matrix_latex(matrix)]
+        out+=[pmatrix(matrix)]
         out+=["\\cdot"]
     out.pop()
     return newlines(out)
