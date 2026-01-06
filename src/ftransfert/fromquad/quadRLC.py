@@ -85,26 +85,63 @@ class SymbolsRLC():
             substitution.update({symb : sub})
         return substitution
     # -----------------------------------------------------------------
+    def gen_substitutions(self):
+        self.subs=self.substitutions(False)
+        self.subs_equal=self.substitutions(True)
+    # -----------------------------------------------------------------
     # appliquer toutes les substitutions dans le dictionnaire substitutions
     # -----------------------------------------------------------------
-    def apply_sub(self,expr,substitution):
+    def apply_sub(self,expr,equal=False):
         for symb in self.symbols.keys():
             if symb in "pRLC" : continue
-            expr = expr.subs(self.symbols[symb],substitution[symb])
+            if equal :
+                expr = expr.subs(self.symbols[symb],self.subs[symb])
+            else:
+                expr = expr.subs(self.symbols[symb],self.subs_equal[symb])
         return expr
 # -----------------------------------------------------------------
 class Quad():
-    def __init__(self,nquad,composants):
+    def __init__(self,nquad,composants,series=None,shunts=None):
         self.nquad=nquad
         self.composants=composants
-        self.series=None
-        self.shunts=None
+        self.series=series
+        self.shunts=shunts
+        self.substitutions=None
+        self.substitutions_equal=None
+        if self.series is not None and self.shunts is not None :
+            self.calc()
+    # -----------------------------------------------------------------
     def gen_symbols(self):
         self.symbolsRLC = SymbolsRLC(self)
     # -----------------------------------------------------------------
     def get_hash(self):
         if self.series == None or self.shunts == None : return 
         return hash(tuple(self.series+self.shunts))
+    # -----------------------------------------------------------------
+    def get_poly(self):
+        num_poly = sp.Poly(sp.expand(self.sp_tfnum), self.symbolsRLC.symbols['p']).all_coeffs()
+        den_poly = sp.Poly(sp.expand(self.sp_tfden), self.symbolsRLC.symbols['p']).all_coeffs()
+        return num_poly,den_poly
+    # -----------------------------------------------------------------
+    def get_ftransfert_from_RLC(self,R,C,L,name="H"):
+        num_poly,den_poly=self.get_poly()
+        evaluation={self.symbolsRLC.symbols['R']: R, \
+                    self.symbolsRLC.symbols['C']: C, \
+                    self.symbolsRLC.symbols['L']: L}
+        evalnum=[float(c.evalf(subs=evaluation)) for c in num_poly]
+        evalden=[float(c.evalf(subs=evaluation)) for c in den_poly]
+        return Ftransfert(num=evalnum,den=evalden,gain=1,name="H")
+
+    # -----------------------------------------------------------------
+    def calc(self):
+        # ---------------------------------------------------------------
+        # on génère les symboles pour le calcul symbolique sympy
+        self.gen_symbols()
+        self.symbolsRLC.gen_substitutions()
+        # Calcul de la matrice de transfert, admittance de sortie et fonction de transfert associé
+        self.gen_transfert_matrices()
+        self.gen_admittance_out()
+        self.gen_sp_transfert_function()
     # -----------------------------------------------------------------
     def random(self):
         series,shunts=[],[]
@@ -119,7 +156,61 @@ class Quad():
                 shunts.append(random.choice(self.composants))
         self.series=series
         self.shunts=shunts
-    # -----------------------------------------------------------------
+        self.calc()
+    # --------------------------------------------------------------------------
+    def get_counting_components_without_Ych(self):
+        cc={"R":0,"C":0,"L":0}
+        n=len(self.series)
+        for k,(serie,shunt) in enumerate(zip(self.series,self.shunts)):
+            cc[serie]+=1
+            if k <n -1 : cc[shunt]+=1
+        return cc
+    # --------------------------------------------------------------------------
+    def gen_sp_transfert_function(self):
+        self.sp_tfunction=(self.sp_tmatrix[0,0]+self.sp_tmatrix[0,1]*self.sp_Ych)
+        self.sp_tfunction=self.symbolsRLC.apply_sub(self.sp_tfunction,equal=False)
+        self.sp_tfunction=sp.expand((1/self.sp_tfunction))
+        self.sp_tfnum, self.sp_tfden = sp.together(self.sp_tfunction).as_numer_denom()
+    # --------------------------------------------------------------------------
+    def gen_transfert_matrices(self):
+        n=len(self.series)
+        self.tmatrices=[]
+        cc={"R":0,"C":0,"L":0}
+        for k,(serie,shunt) in enumerate(zip(self.series,self.shunts)):
+            cc[serie]+=1
+            self.tmatrices.append(self.transfert_matrix(self.symbolsRLC.symbols[f"Z{serie}{cc[serie]}"],qtype="serie"))
+            if k < n-1 :
+                cc[shunt]+=1
+                self.tmatrices.append(self.transfert_matrix(self.symbolsRLC.symbols[f"Z{shunt}{cc[shunt]}"],qtype="shunt"))
+        self.sp_tmatrix = reduce(lambda x, y: x * y, self.tmatrices)
+
+    # --------------------------------------------------------------------------
+    def gen_admittance_out(self):
+        add_admittance_out=[]
+        cc=self.get_counting_components_without_Ych()
+        for composant in self.shunts[-1]:
+            cc[composant]+=1
+            add_admittance_out.append(self.symbolsRLC.symbols[f"Y{composant}{cc[composant]}"])
+        self.sp_Ych=sum(add_admittance_out)
+    # --------------------------------------------------------------------------
+    def __str__(self):
+        if self.series is None : return "None"
+        out=["*" if k in [0,4] else " " for k in range(5)]
+        for k,(serie,shunt) in enumerate(zip(self.series,self.shunts)):
+            if len(shunt) < 2 :
+                out[0]+=f" ---- {serie} ---- *"
+                out[1]+=f"             |"
+                out[2]+=f"             {shunt}"
+                out[3]+=f"             |"
+                out[4]+=f" ----------- *"
+            else:
+                out[0]+=f" ---- {serie} ---- * ---- *"
+                out[1]+=      f"             |      |"
+                out[2]+=      f"             {shunt[0]}      {shunt[1]}"
+                out[3]+=      f"             |      |"
+                out[4]+=      f" ----------- * ---- *"
+        return newlines(out+[""])
+    # --------------------------------------------------------------------------
     # tikz Quadripole (tous les composants sont identiques)
     #   * -- SERIE -- * -- * -- SERIE -- * ----- *
     #                 |                    |     |
@@ -127,7 +218,7 @@ class Quad():
     #                 |                    |     |
     #   * ----------- * ---- * ----------- * --- *
     # si dernier quadripole SHUNT peut être doublé 
-    # -----------------------------------------------------------------
+    # --------------------------------------------------------------------------
     def tikz(self,index,serie="R",shunt="R",first=False,last=False,):
         e,s=1,2
         out =[begin("scope","shift={("f"{4*index}"",0)}")]
@@ -206,48 +297,30 @@ class Quad():
     # -----------------------------------------------------------------
     # produire un document latex
     # -----------------------------------------------------------------
-    def gentikz(self,page):
-        substitutions=self.symbolsRLC.substitutions(False)
-        substitutions_equal=self.symbolsRLC.substitutions(True)
-        print("NON EQUAL",substitutions)
-        print("EQUAL",substitutions_equal)
+    def genpage(self,page):
         assert len(self.series)==len(self.shunts), f"la taille de series et shunts doit être la même {len(series)} {len(shunts)}"
         out=[macro("section*",f"Quadripole {composants} {page} {self.get_hash():12x}")]
         out+=[begin("center")]
         out+=[begin("circuitikz","european resistors,straight voltages")]
         n=len(self.series)
-        transfert_matrices=[]
         cc={"R":0,"C":0,"L":0}
         for k,(serie,shunt) in enumerate(zip(self.series,self.shunts)):
             cc[serie]+=1
-            transfert_matrices.append(self.transfert_matrix(self.symbolsRLC.symbols[f"Z{serie}{cc[serie]}"],qtype="serie"))
-            if k < n-1 :
-                cc[shunt]+=1
-                transfert_matrices.append(self.transfert_matrix(self.symbolsRLC.symbols[f"Z{shunt}{cc[shunt]}"],qtype="shunt"))
+            if k < n-1 : cc[shunt]+=1
             out+=[self.tikz_diff(k,cc,serie=serie,shunt=shunt,first=k==0,last=k==n-1)]
         out+=[end("circuitikz")]
         out+=[end("center")]
-        transfert_matrix_product = reduce(lambda x, y: x * y, transfert_matrices)
         out+=["\["]
-        out+=["\prod_i T_i = "+ display_multi_dot(transfert_matrices)]
+        out+=["\prod_i T_i = "+ display_multi_dot(self.tmatrices)]
         out+=["\]"]
         out+=["\["]
-        out+=["T_{\mathrm{total}}="+display_pmatrix(transfert_matrix_product)]
+        out+=["T_{\mathrm{total}}="+display_pmatrix(self.sp_tmatrix)]
         out+=["\]"]
-        add_admittance_out=[]
-        for composant in self.shunts[-1]:
-            cc[composant]+=1
-            add_admittance_out.append(self.symbolsRLC.symbols[f"Y{composant}{cc[composant]}"])
-        Ych=sum(add_admittance_out)
-        Ych=self.symbolsRLC.apply_sub(Ych,substitutions)
         out+=["\["]
-        out+=["Y_{CH}="+"+".join(f"Y_{sym}" for sym in self.shunts[-1])+"="+sp.latex(Ych)]
+        out+=["Y_{CH}="+"+".join(f"Y_{sym}" for sym in self.shunts[-1])+"="+sp.latex(self.sp_Ych)]
         out+=["\]"]
-        expr=(transfert_matrix_product[0,0]+transfert_matrix_product[0,1]*Ych)
-        expr=self.symbolsRLC.apply_sub(expr,substitutions)
-        expr=sp.expand((1/expr))
         out+=["\["]
-        out+=["H(p)="+sp.latex(sp.simplify(expr))]
+        out+=["H(p)="+sp.latex(sp.simplify(self.sp_tfunction))]
         out+=["\]"]
         out+=[macro("newline")]
         out+=[macro("newline")]
@@ -259,14 +332,11 @@ class Quad():
             out+=[self.tikz(k,serie=serie,shunt=shunt,first=k==0,last=k==n-1)]
         out+=[end("circuitikz")]
         out+=[end("center")]
-        expr=self.symbolsRLC.apply_sub(expr,substitutions_equal)
-        print("EXPR",expr,substitutions_equal)
+        expr=self.symbolsRLC.apply_sub(self.sp_tfunction,equal=True)
         out+=["\["]
         out+=["H(p)="+sp.latex(sp.simplify(expr))]
         out+=["\]"]
-        num, den = sp.together(expr).as_numer_denom()
-        print(expr,num,den)
-        return newlines(out),(num,den)
+        return newlines(out)
 
 # -----------------------------------------------------------------------------
 def gen_main_latex_document(nquad,npages,composants):
@@ -296,28 +366,23 @@ def gen_main_latex_document(nquad,npages,composants):
         s=set()
         for c in quad.series+quad.shunts: s |= set(c)
         if quad.get_hash() in deja_fait or len(composants) > len(s) : continue
+        # ---------------------------------------------------------------
         #on ajouter à l'ensemble des hash déjà produit
         deja_fait.add(quad.get_hash())
         # ---------------------------------------------------------------
-        # on génère les symboles pour le calcul symbolique sympy
-        quad.gen_symbols()
-        print("all symbols",quad.symbolsRLC.symbols)
         # on ajoute la page du quadrupole en tikz + formules
-        tikz,(num,den) = quad.gentikz(page)
-        num_poly = sp.Poly(sp.expand(num), quad.symbolsRLC.symbols['p']).all_coeffs()
-        den_poly = sp.Poly(sp.expand(den), quad.symbolsRLC.symbols['p']).all_coeffs()
-        print("num,den poly",num_poly,den_poly)
+        tikz = quad.genpage(page)
+        out+=[tikz]
+        num_poly = sp.Poly(sp.expand(quad.sp_tfnum), quad.symbolsRLC.symbols['p']).all_coeffs()
+        den_poly = sp.Poly(sp.expand(quad.sp_tfden), quad.symbolsRLC.symbols['p']).all_coeffs()
         gain=1
         R,C,L=1000,1e-6,0.001
         evaluation={ quad.symbolsRLC.symbols['R']: R, quad.symbolsRLC.symbols['C']: C, quad.symbolsRLC.symbols['L']:L}
-        print(num_poly[0].evalf(subs=evaluation))
         evalnum=[float(c.evalf(subs=evaluation)) for c in num_poly]
         evalden=[float(c.evalf(subs=evaluation)) for c in den_poly]
-        print(evalnum,evalden,file=sys.stderr)
         H=Ftransfert(num=evalnum,den=evalden,gain=gain,name="H")
         H.info()
         print(H)
-        out+=[tikz]
         out+=["\["]
         out+=["R=\SI{"f"{R}""}""{\ohm}"]
         out+=["\]"]
