@@ -131,7 +131,8 @@ class Quad():
         evalnum=[float(c.evalf(subs=evaluation)) for c in num_poly]
         evalden=[float(c.evalf(subs=evaluation)) for c in den_poly]
         return Ftransfert(num=evalnum,den=evalden,gain=1,name="H")
-
+    def get_latex(self):
+        return sp.latex(sp.simplify(self.sp_tfunction))
     # -----------------------------------------------------------------
     def calc(self):
         # ---------------------------------------------------------------
@@ -336,6 +337,22 @@ class Quad():
         out+=["\["]
         out+=["H(p)="+sp.latex(sp.simplify(expr))]
         out+=["\]"]
+        return newlines(out)
+
+    def standalone(self):
+        out=[macro("documentclass","standalone","border=0.5 pt, convert={outext=.png}",)]
+        out+=[macro("usepackage","circuitikz")]
+        out+=[macro("usepackage","pgf")]
+        out+=[macro("usepackage","tikz")]
+        out+=[macro("usepackage","pgfplots")]
+        out+=[macro("pgfplotsset","compat=1.18")]
+        out+=[begin("document")]
+        out+=[begin("circuitikz","european resistors,straight voltages")]
+        n=len(self.series)
+        for k,(serie,shunt) in enumerate(zip(self.series,self.shunts)):
+            out+=[self.tikz(k,serie=serie,shunt=shunt,first=k==0,last=k==n-1)]
+        out+=[end("circuitikz")]
+        out+=[end("document")]
         return newlines(out)
 
 # -----------------------------------------------------------------------------
