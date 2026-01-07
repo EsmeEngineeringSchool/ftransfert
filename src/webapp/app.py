@@ -1,112 +1,148 @@
 import streamlit as st
+import subprocess 
 import numpy as np
-from ftransfert.common.Ftransfert import Ftransfert
+import math
+from ftransfert.common.utils      import nat2dB, rad2deg
+from ftransfert.fromquad.quadRLC import Quad 
+from ftransfert.bode.plot import bode as bodeplot
+from ftransfert.bode.tikz import bode as bodetikz
+
+def generate_valid_quad(nquad, composants, max_tries=20):
+    quad = Quad(nquad, composants)
+    for _ in range(max_tries):
+        quad.random()
+        if deux_composants_differents(quad):
+            return quad
+    return quad  # fallback acceptable
+
+
+def deux_composants_differents(quad):
+    s=set()
+    for c in quad.series+quad.shunts: s |= set(c)
+    return len(s) > 1
+
+def estimation_bounds(R,L,C,H):
+    w=[R/L,1/(R*C),1/(L*C)**0.5]
+    xlim=(10**round(math.log10(min(w)/1000)),10**round(math.log10(1000*max(w))))
+    g,p=[],[]
+    for wi in w:
+        pow10_w = 10**round(math.log10(wi/10))
+        _,gw,pw=H.eval(pow10_w*1j)
+        g.append(nat2dB(gw))
+        p.append(rad2deg(pw))
+    _,gm,pm=H.eval(1j*(xlim[1]*xlim[0])**0.5)
+    g.append(nat2dB(gm))
+    p.append(rad2deg(pm))
+    _,gmi,pmi=H.eval(1j*xlim[0])
+    g.append(nat2dB(gmi))
+    p.append(rad2deg(pmi))
+    _,gma,pma=H.eval(1j*xlim[1])
+    g.append(nat2dB(gma))
+    p.append(rad2deg(pma))
+    g.sort()
+    p.sort()
+    print(p)
+    g0f,g1f=math.floor(g[0]/10)*10-20,math.ceil(g[-1]/10)*10+40
+    p0f,p1f=math.floor(p[0]/90)*90,math.ceil(p[-1]/90)*90
+    return xlim,(g0f,g1f),(p0f,p1f) 
 
 # --------------------------------------------------
 # Configuration générale de la page
 # --------------------------------------------------
-
 st.set_page_config(
     page_title="Diagrammes de Bode – ftransfert",
     layout="wide"
 )
-
-st.title("Diagrammes de Bode interactifs")
+st.title("*ftransfert* et *quadRLC* -- Applications")
 st.markdown(
     """
-    Cette application permet d'explorer l'influence des paramètres
-    d'un système linéaire sur son diagramme de Bode.
+    Cette application web (Streamlit) permet d'explorer l'influence des paramètres
+    d'un quadripole linéaire sur son diagramme de Bode.
     """
 )
-
-# --------------------------------------------------
-# Barre latérale : paramètres physiques
-# --------------------------------------------------
 
 st.sidebar.header("Paramètres du système")
 
-R = st.sidebar.slider(
-    "Résistance R (Ω)",
-    min_value=1.0,
-    max_value=1000.0,
-    value=100.0,
-    step=1.0
-)
+nquad = st.sidebar.number_input("Nombre de quadripôles", min_value=1, value=2)
+composants = st.sidebar.selectbox("Type de composants", ["RL", "LC", "RC", "RLC"])
+if ("nquad" not in st.session_state
+    or "composants" not in st.session_state
+    or "quad" not in st.session_state
+    or st.session_state.nquad != nquad
+    or st.session_state.composants != composants):
+    quad = generate_valid_quad(nquad, composants)
+    st.session_state.quad = quad
+    st.session_state.nquad = nquad
+    st.session_state.composants = composants
 
-L = st.sidebar.slider(
-    "Inductance L (H)",
-    min_value=1e-3,
-    max_value=1.0,
-    value=0.1,
-    format="%.3f"
-)
 
-C = st.sidebar.slider(
-    "Capacité C (F)",
-    min_value=1e-6,
-    max_value=1e-1,
-    value=1e-3,
-    format="%.6f"
-)
+R,L,C=1,1,1
 
-st.sidebar.markdown("---")
+if "R" in composants :
+    Rpower = st.sidebar.slider(
+        "Résistance R (Ω)",
+        min_value=0.0,
+        max_value=4.0,
+        value=2.0,
+        step=0.25
+    )
+    R=10**Rpower
 
-omega_min = st.sidebar.number_input(
-    "ω min (rad/s)",
-    value=1e-2,
-    format="%.2e"
-)
+if "L" in composants :
+    Lpower = st.sidebar.slider(
+            "Inductance L (H)",
+            min_value=-3.0,    
+            max_value=0.0,    
+            value=-1.0,
+            step=0.25,
+            )
+    L=10**Lpower
 
-omega_max = st.sidebar.number_input(
-    "ω max (rad/s)",
-    value=1e5,
-    format="%.2e"
-)
+if "C" in composants :
+    Cpower = st.sidebar.slider(
+            "Capacité C (F) ordre de grandeur",
+            min_value=-6,
+            max_value=0,
+            value=-3,
+            step=1,
+            )
+    C=10**Cpower
 
-n_points = st.sidebar.slider(
-    "Nombre de points",
-    min_value=100,
-    max_value=5000,
-    value=1000,
-    step=100
-)
+if st.sidebar.button("Nouveau circuit"):
+    quad = generate_valid_quad(nquad, composants)
+    st.session_state.quad = quad
 
-# --------------------------------------------------
-# Calcul
-# --------------------------------------------------
-
-omega = np.logspace(
-    np.log10(omega_min),
-    np.log10(omega_max),
-    n_points
-)
-
-# Exemple : fonction de transfert RLC (à adapter à ton API exacte)
-H = Ftransfert.from_RLC(R=R, L=L, C=C)
-
+quad = st.session_state.quad
+H=quad.get_ftransfert_from_RLC(R,C,L)
+print(H)
+xlim,y1lim,y2lim=estimation_bounds(R,L,C,H)
 # --------------------------------------------------
 # Affichage des résultats
 # --------------------------------------------------
-
-col1, col2 = st.columns([2, 1])
-
+col1, col2 = st.columns([1, 2])
 with col1:
-    st.subheader("Diagramme de Bode")
-
-    fig = H.bode_plot(omega=omega)
-    st.pyplot(fig)
+    fig = bodeplot(H,xlim=xlim,y1lim=y1lim,y2lim=y2lim,n=1024)
+    fig.savefig("bode.png", dpi=150)
+    st.image("bode.png",width=500)
 
 with col2:
     st.subheader("Informations système")
+    
+    with open("quad.tex","w") as f:
+        print("here")
+        print(quad.standalone(),file=f)
+        print("here")
+    result = subprocess.run( ["pdflatex","-shell-escape", "quad.tex"], capture_output=True)
+    if result.returncode : print("erreur de compilation pdflatex")
+    st.image("quad.png",width=500)
+    st.latex(f"H(p)= {quad.get_latex()}")
 
-    st.latex(r"H(p) = \frac{1}{LCp^2 + RCp + 1}")
-
-    st.markdown(f"""
-    - **R** = {R:.2f} Ω  
-    - **L** = {L:.3f} H  
-    - **C** = {C:.6f} F  
-    """)
-
+    out=[]
+    if "R" in composants : out+=[f"- **R** = {R:.2f} Ω"]
+    if "L" in composants : out+=[f"- **L** = {L:.3f} H"]
+    if "C" in composants : out+=[f"- **C** = {C:.6f} F"]
+    st.markdown("\n".join(out))
+    st.latex(rf"{H.latex()}")
 # --------------------------------------------------
 # Export
 # --------------------------------------------------
@@ -128,24 +164,15 @@ with col3:
             )
 
 with col4:
-    if hasattr(H, "bode_tikz"):
-        tikz_code = H.bode_tikz(omega=omega)
-        st.download_button(
-            "Télécharger le code TikZ",
-            tikz_code,
-            file_name="bode.tex",
-            mime="text/plain"
-        )
-
-# --------------------------------------------------
-# Pied de page pédagogique
-# --------------------------------------------------
-
-st.markdown(
-    """
-    ---
-    **Objectif pédagogique :**  
-    Comprendre l'influence des paramètres physiques sur la réponse fréquentielle
-    d'un système linéaire.
-    """
-)
+    if st.button("Exporter en PDF (PGF/Tikz)"):
+        basename="example_bodetikz_1"
+        bodetikz(H,filename=f"{basename}.tex",xlim=xlim,y1lim=y1lim,y2lim=y2lim)
+        result = subprocess.run( ["pdflatex", f"{basename}.tex"], capture_output=True)
+        if result.returncode : print("erreur de compilation pdflatex")
+        with open(f"{basename}.pdf", "rb") as f:
+            st.download_button(
+                "Télécharger le pdf TikZ",
+                f,
+                file_name=f"{basename}.pdf",
+                mime="text/pdf"
+            )
