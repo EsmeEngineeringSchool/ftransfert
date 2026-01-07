@@ -162,6 +162,7 @@ with col3:
             )
 
 with col4:
+    st.text("En cours")
     #if st.button("Exporter en PDF (PGF/Tikz)"):
         #basename="example_bodetikz_1"
         #bodetikz(H,filename=f"{basename}.tex",xlim=xlim,y1lim=y1lim,y2lim=y2lim)
