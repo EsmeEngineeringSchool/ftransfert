@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 DPI=100
 
-def add_arrow(line, size=16, color=None,middle=False,pcts=[0.01]):
+def add_arrow(line, size=16, color=None,middle=False,pcts=[0.05]):
     """
         add an arrow to a line. (adapted from https://stackoverflow.com/questions/
                                  34017866/arrow-on-a-line-plot-with-matplotlib)
@@ -14,8 +14,12 @@ def add_arrow(line, size=16, color=None,middle=False,pcts=[0.01]):
         color = line.get_color()
     xdata = line.get_xdata()
     ydata = line.get_ydata()
-    m=(len(xdata) - 1)//2
+    xm = np.sqrt(np.min(xdata) * np.max(xdata))
+    m  = np.argmin(np.abs(xdata - xm))
+    print("middle in add_arrow",m)
+    print(xm)
     if middle :
+        print(xdata[m+1],ydata[m+1])
         line.axes.annotate('',
         xytext=(xdata[m], ydata[m]),
         xy=(xdata[m+1], ydata[m+1]),
