@@ -12,7 +12,7 @@ margin=1cm}
 \pgfplotsset{compat=1.18}
 \begin{document}
 \[
-\boldsymbol{H(p)=\dfrac{p^2}{0.3\cdot10^{-9}p^2+1}}
+\boldsymbol{H(p)=\dfrac{p^2}{0.5\cdot10^{-12}p^3+0.2\cdot10^{-8}p^2+0.5\cdot10^{-3}p+1}}
 \]
 \begin{center}
 \begin{tikzpicture}[trim axis left]
@@ -26,14 +26,15 @@ xmode=log,ymode=normal,
 xlabel={},
 ylabel={Gain (\si{\decibel})},
 xtick={1,10,100,1000,10000,100000,1000000,10000000,100000000,1000000000},
-ytick={60,78,96,114,132,150,168,186,204,222,240},
+ytick={50,67,84,101,118,135,152,169,186,203,220},
 xticklabels={$10^{0}$,$10^{1}$,$10^{2}$,$10^{3}$,$10^{4}$,$10^{5}$,$10^{6}$,$10^{7}$,$10^{8}$,$10^{9}$},
-yticklabels={60,78,96,114,132,150,168,186,204,222,240},
+yticklabels={50,67,84,101,118,135,152,169,186,203,220},
 xmin=1,xmax=1000000000,
-ymin=60,ymax=240]
-\addplot[ultra thick, blue,domain=1:1000000000,samples=256]{189.54242509439325+40*log10(x)-10*log10(0.0+(x+(54772.255750516604))*(x+(54772.255750516604)))-10*log10(0.0+(x+(-54772.255750516604))*(x+(-54772.255750516604)))};
-\addplot[line width=2pt,red,dashed,domain=1:54772.255750516604, samples=16]{0.0+40*log10(x)};
-\addplot[line width=2pt,red,dashed,domain=54772.255750516604:1000000000, samples=16]{0.0+40*log10(x)+(-40.0)*log10(x/54772.255750516604)};
+ymin=50,ymax=220]
+\addplot[ultra thick, blue,domain=1:1000000000,samples=256]{246.02059991327963+40*log10(x)-10*log10(991984.129800141+(x+(31543.748673599323))*(x+(31543.748673599323)))-10*log10(991984.129800141+(x+(-31543.748673599323))*(x+(-31543.748673599323)))-10*log10(4032192.5067976224+(x+(0.0))*(x+(0.0)))};
+\addplot[line width=2pt,red,dashed,domain=1:2008.0319984496318, samples=16]{0.0+40*log10(x)};
+\addplot[line width=2pt,red,dashed,domain=2008.0319984496318:31559.468698205284, samples=16]{0.0+40*log10(x)+(-20.0)*log10(x/2008.0319984496318)};
+\addplot[line width=2pt,red,dashed,domain=31559.468698205284:1000000000, samples=16]{0.0+40*log10(x)+(-20.0)*log10(x/2008.0319984496318)+(-40.0)*log10(x/31559.468698205284)};
 \end{axis}
 \end{tikzpicture}
 
@@ -48,27 +49,29 @@ xmode=log,ymode=normal,
 xlabel={Pulsation (\si{\radian\per\second})},
 ylabel={Phase (\si{degree})},
 xtick={1,10,100,1000,10000,100000,1000000,10000000,100000000,1000000000},
-ytick={-90,-72,-54,-36,-18,0,18,36,54,72,90},
+ytick={-90,-63,-36,-9,18,45,72,99,126,153,180},
 xticklabels={$10^{0}$,$10^{1}$,$10^{2}$,$10^{3}$,$10^{4}$,$10^{5}$,$10^{6}$,$10^{7}$,$10^{8}$,$10^{9}$},
-yticklabels={-90,-72,-54,-36,-18,0,18,36,54,72,90},
+yticklabels={-90,-63,-36,-9,18,45,72,99,126,153,180},
 xmin=1,xmax=1000000000,
-ymin=-90,ymax=90]
-\addplot[ultra thick, blue,domain=1:1000000000,samples=256]{180+(-2)*atan2(x/54772.255750516604,1)};
-\addplot[line width=2pt,red,dashed,domain=1:54772.255750516604,samples=16]{180};
-\draw[line width=2pt,red,dashed](axis cs:54772.255750516604,180) -- (axis cs:54772.255750516604,0.0);
-\addplot[line width=2pt,red,dashed,domain=54772.255750516604:1000000000,samples=16]{0.0};
+ymin=-90,ymax=180]
+\addplot[ultra thick, blue,domain=1:1000000000,samples=256]{180+(-1)*atan2(x/2008.0319984496318,1)+(-2)*atan2(x/31559.468698205284,1)};
+\addplot[line width=2pt,red,dashed,domain=1:2008.0319984496318,samples=16]{180};
+\draw[line width=2pt,red,dashed](axis cs:2008.0319984496318,180) -- (axis cs:2008.0319984496318,90.0);
+\addplot[line width=2pt,red,dashed,domain=2008.0319984496318:31559.468698205284,samples=16]{90.0};
+\draw[line width=2pt,red,dashed](axis cs:31559.468698205284,90.0) -- (axis cs:31559.468698205284,-90.0);
+\addplot[line width=2pt,red,dashed,domain=31559.468698205284:1000000000,samples=16]{-90.0};
 \end{axis}
 \end{tikzpicture}
 \end{center}
 \paragraph{Fonctions réelles du gain et du déphasage}
 \[
-G(\omega)=|H(\jw)|=\dfrac{2999999999\left(- \omega^{2}\right)}{1 - \frac{333333333333333 \omega^{2}}{1000000000000000000000000}}
+G(\omega)=|H(\jw)|=\dfrac{2000000000000\left(- \omega^{2}\right)}{- \frac{j \omega^{3}}{2000000000000} - \frac{\omega^{2}}{500000000} + \frac{j \omega}{2000} + 1}
 \]
 \[
-G_{dB}(\omega)=189+40\log\omega-20\log{\left(1+\left(\frac{\omega}{\omega_1}\right)^2\right)}
+G_{dB}(\omega)=246+40\log\omega-10\log{\left(1+\left(\frac{\omega}{\omega_1}\right)^2\right)}-20\log{\left(1+\left(\frac{\omega}{\omega_2}\right)^2\right)}
 \]
 \[
-\phi(\omega)=\arg{H(\jw)}=180-2\arctan{\left(\frac{\omega}{\omega_1}\right)}
+\phi(\omega)=\arg{H(\jw)}=180-\arctan{\left(\frac{\omega}{\omega_1}\right)}-2\arctan{\left(\frac{\omega}{\omega_2}\right)}
 \]
 \paragraph{Quelques valeurs particulières calculées}
 \begin{center}
@@ -76,29 +79,31 @@ G_{dB}(\omega)=189+40\log\omega-20\log{\left(1+\left(\frac{\omega}{\omega_1}\rig
 \hline
 $\omega$ (\si{\radian\per\second}) & Gain (\si{\decibel}) & Phase (\si{\degree})\\
 \hline
-     1.00000 &      0.00000 &   -180.00000\\
+     1.00000 &     -0.00000 &    179.97135\\
 \hline
-     7.94328 &     36.00000 &   -180.00000\\
+     7.94328 &     35.99993 &    179.77244\\
 \hline
-    63.09573 &     72.00001 &   -180.00000\\
+    63.09573 &     71.99575 &    178.19303\\
 \hline
-   501.18723 &    108.00073 &   -180.00000\\
+   501.18723 &    107.73973 &    165.92835\\
 \hline
-  3981.07171 &    144.04601 &   -180.00000\\
+\textbf{  2008.03200} & \textbf{   129.13569} & \textbf{   134.76897}\\
 \hline
- 31622.77660 &    183.52183 &   -180.00000\\
+  3981.07171 &    137.21005 &    116.30258\\
 \hline
-\textbf{ 54772.25575} & \textbf{   404.60715} & \textbf{  -360.00000}\\
+\textbf{ 31559.46870} & \textbf{   180.01741} & \textbf{     3.64065}\\
 \hline
-251188.64315 &    189.96555 &   -360.00000\\
+ 31622.77660 &    180.00000 &     -0.00000\\
 \hline
-1995262.31497 &    189.54897 &   -360.00000\\
+251188.64315 &    138.15825 &    -89.08034\\
 \hline
-15848931.92461 &    189.54253 &   -360.00000\\
+1995262.31497 &    120.02276 &    -89.88512\\
 \hline
-125892541.17942 &    189.54243 &   -360.00000\\
+15848931.92461 &    102.02063 &    -89.98554\\
 \hline
-1000000000.00000 &    189.54243 &   -360.00000\\
+125892541.17942 &     84.02060 &    -89.99818\\
+\hline
+1000000000.00000 &     66.02060 &    -89.99977\\
 \hline
 \end{tabular}
 \end{center}
