@@ -128,11 +128,11 @@ with col1:
 with col2:
     st.subheader("Informations système")
     
-    with open("quad.tex","w") as f:
-        print(quad.standalone(),file=f)
-    result = subprocess.run( ["pdflatex","-shell-escape", "quad.tex"], capture_output=True)
-    if result.returncode : print("erreur de compilation pdflatex")
-    st.image("quad.png",width=500)
+    #with open("quad.tex","w") as f:
+    #    print(quad.standalone(),file=f)
+    #result = subprocess.run( ["pdflatex","-shell-escape", "quad.tex"], capture_output=True)
+    #if result.returncode : print("erreur de compilation pdflatex")
+    #st.image("quad.png",width=500)
     st.latex(f"H(p)= {quad.get_latex()}")
 
     out=[]
@@ -162,15 +162,15 @@ with col3:
             )
 
 with col4:
-    if st.button("Exporter en PDF (PGF/Tikz)"):
-        basename="example_bodetikz_1"
-        bodetikz(H,filename=f"{basename}.tex",xlim=xlim,y1lim=y1lim,y2lim=y2lim)
-        result = subprocess.run( ["pdflatex", f"{basename}.tex"], capture_output=True)
-        if result.returncode : print("erreur de compilation pdflatex")
-        with open(f"{basename}.pdf", "rb") as f:
-            st.download_button(
-                "Télécharger le pdf TikZ",
-                f,
-                file_name=f"{basename}.pdf",
-                mime="text/pdf"
-            )
+    #if st.button("Exporter en PDF (PGF/Tikz)"):
+        #basename="example_bodetikz_1"
+        #bodetikz(H,filename=f"{basename}.tex",xlim=xlim,y1lim=y1lim,y2lim=y2lim)
+        #result = subprocess.run( ["pdflatex", f"{basename}.tex"], capture_output=True)
+        #if result.returncode : print("erreur de compilation pdflatex")
+        #with open(f"{basename}.pdf", "rb") as f:
+       #     st.download_button(
+       #         "Télécharger le pdf TikZ",
+       #         f,
+       #         file_name=f"{basename}.pdf",
+       #         mime="text/pdf"
+       #     )
