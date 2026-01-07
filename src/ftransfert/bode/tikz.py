@@ -3,7 +3,6 @@ import numpy as np
 import math
 from ftransfert.common.latex import beginmathdisplay,endmathdisplay,macro,begin,end,draw,tick,ticklabels
 from ftransfert.common.string_ import newlines
-
 # ---------------------------------------------------------------
 # options des axes du pgfplot/tikz
 # ---------------------------------------------------------------
@@ -27,8 +26,9 @@ def options_axis(xint,yint,xtick=True,xlabel="",ylabel="",ystep=20):
     out+=[f"xmin={xmin},xmax={xmax},"]
     out+=[f"ymin={ymin},ymax={ymax}"]
     return newlines(out)
-
+# ---------------------------------------------------------------
 # générations des relations de gain et de phases asymptotiques
+# ---------------------------------------------------------------
 def asymptotics_relations(FT):
     gain_relations,phase_relations=[],[]
     i,d=FT.classe
@@ -41,8 +41,9 @@ def asymptotics_relations(FT):
         gain_relations.append(gain_relations[-1]+f"+({20*w[1]})*log10(x/{w[0]})")
         phase_relations.append(phase_relations[-1]+w[1]*90)
     return gain_relations,phase_relations
-    
+# ---------------------------------------------------------------
 # figure bode gain 
+# ---------------------------------------------------------------
 def gaintikz(FT,w_intervals,gain_axis,gain_relations,gain_exact):
     xmin,xmax=w_intervals[0][0],w_intervals[-1][-1]
     ymin,ymax,gain_step=gain_axis
@@ -59,8 +60,9 @@ def gaintikz(FT,w_intervals,gain_axis,gain_relations,gain_exact):
     out+=[end("axis")]
     out+=[end("tikzpicture")]
     return newlines(out) 
-
+# ---------------------------------------------------------------
 # figure bode phase 
+# ---------------------------------------------------------------
 def phasetikz(FT,w_intervals,phase_axis,phase_relations,phase_exact):
     xmin,xmax=w_intervals[0][0],w_intervals[-1][-1]
     ymin,ymax,phase_step=phase_axis
@@ -87,8 +89,10 @@ def phasetikz(FT,w_intervals,phase_axis,phase_relations,phase_exact):
     out+=[end("axis")]
     out+=[end("tikzpicture")]
     return newlines(out) 
-
-
+# ---------------------------------------------------------------
+# Diagramme de bode en tikz. 
+# Cette fonction génère une document latex à compiler 
+# ---------------------------------------------------------------
 def bode(FT,filename,latex_document=True,**kwargs):
     gain_relations,phase_relations=asymptotics_relations(FT)
     xlim=kwargs.get('xlim',(1e-2,1e2))
@@ -103,7 +107,6 @@ def bode(FT,filename,latex_document=True,**kwargs):
     w_intervals=[]
     for k in range(len(omegas)-1):
         w_intervals.append((omegas[k],omegas[k+1]))
-
     # ------------------------------------------
     # LaTeX Header
     # ------------------------------------------
