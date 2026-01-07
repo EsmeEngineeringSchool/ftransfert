@@ -23,14 +23,14 @@ def estimation_bounds(R,L,C,H):
     p.sort()
     g0f,g1f=math.floor(g[0]/10)*10-20,math.ceil(g[-1]/10)*10+40
     p0f,p1f=math.floor(p[0]/90)*90,math.ceil(p[-1]/90)*90
-    return xlim,(g0f,g1f),(-90,90) 
+    return xlim,(g0f,g1f),(p0f,p1f) 
 
 if __name__ == "__main__" :
     R,C,L=1000,1e-6,0.001
     nquad,composants=2,"RLC" 
-    #quad=Quad(nquad,composants,series=["R","R"],shunts=["L","R"])
-    quad=Quad(nquad,composants)
-    quad.random()
+    quad=Quad(nquad,composants,series=["R","C"],shunts=["R","LC"])
+    #quad=Quad(nquad,composants)
+    #quad.random()
     print(quad)
     H=quad.get_ftransfert_from_RLC(R,C,L)
     print(H)
