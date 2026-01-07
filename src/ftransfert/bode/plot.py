@@ -9,7 +9,6 @@ def bode(FT,**kwargs):
     in practice from 0 -> fmax
     """
     dpi=kwargs.get('dpi',100)        # résolution de l'image
-    savefig=kwargs.get('savefig',None)
     xlim=kwargs.get('xlim', (1e-2,1e2))
     y1lim=kwargs.get('y1lim', (-30,10))
     y2lim=kwargs.get('y2lim', (-90,0))
@@ -53,8 +52,8 @@ def bode(FT,**kwargs):
     # Gain chart (UP)
     ax1 = fig.add_subplot(2, 1, 1)
     ax1.tick_params(axis='both',labelsize=16)
-    ax1.title.set_text(r'Bode $'+FT.name+'(p)$')
-    ax1.title.set_size(24)
+    #ax1.title.set_text(r'Bode $'+FT.name+'(p)$')
+    #ax1.title.set_size(24)
     ax1.set(xlim=xlim, ylim=y1lim)
     ax1.xaxis.label.set_text(r'$\omega$ (rad$\cdot$s$^{-1}$)')
     ax1.xaxis.label.set_size(22)
@@ -64,7 +63,7 @@ def bode(FT,**kwargs):
     plt.grid()
     for kg in range(len(gains)):
         line,=plt.plot(XBode[kg].imag,Y1Bode[kg],color=color,label=labels[kg])
-        add_arrow(line,pcts=arrow_pcts,middle=middle)
+        #add_arrow(line,pcts=arrow_pcts,middle=True)
     # Phase chart (DOWN)
     ax2 = fig.add_subplot(2, 1, 2)
     ax2.set(xlim=xlim, ylim=y2lim)
@@ -77,10 +76,6 @@ def bode(FT,**kwargs):
     plt.grid()
     for kg in range(len(gains)):
         line,=plt.plot(XBode[kg].imag,Y2Bode[kg],color=color,label=labels[kg])
-        add_arrow(line,pcts=arrow_pcts,middle=middle)
+        #add_arrow(line,pcts=arrow_pcts,middle=middle)
     plt.tight_layout()
-    if savefig:
-        plt.savefig(savefig)
-    else:
-        plt.show(block=False)
     return fig 
