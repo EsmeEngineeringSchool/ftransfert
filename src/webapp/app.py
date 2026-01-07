@@ -129,9 +129,7 @@ with col2:
     st.subheader("Informations système")
     
     with open("quad.tex","w") as f:
-        print("here")
         print(quad.standalone(),file=f)
-        print("here")
     result = subprocess.run( ["pdflatex","-shell-escape", "quad.tex"], capture_output=True)
     if result.returncode : print("erreur de compilation pdflatex")
     st.image("quad.png",width=500)
