@@ -104,7 +104,7 @@ class Ftransfert():
         # ------------------------------
         # ENCORE UTILE ?
         # options for plotting phase
-        self.phaseWrapping=True
+        self.phaseWrapping=False
         # riemann index,sign
         self.riemann=[0,-1]
         # ------------------------------
@@ -203,18 +203,18 @@ class Ftransfert():
                 match self.type :
                     case "roots":
                         if len(strroot_latex(self.Cpoles)):
-                            return "\\boldsymbol{"f"{self.name}""(p)="f"{self.gain}""\\dfrac{"\
+                            return f"{self.name}""(p)="f"{self.gain}""\\dfrac{"\
                                                   f"{strroot_latex(self.Czeros)}""}{"\
-                                                  f"{strroot_latex(self.Cpoles)}""}}"
+                                                  f"{strroot_latex(self.Cpoles)}""}"
                         else:
-                            return "\\boldsymbol{"f"{self.name}""(p)="f"{self.gain}"\
-                                                  f"{strroot_latex(self.Czeros)}""}"
+                            return f"{self.name}""(p)="f"{self.gain}"\
+                                                  f"{strroot_latex(self.Czeros)}"
 
                     case "polys":
                         gain_shown=self.gain if self.gain !=1 else ""
-                        return "\\boldsymbol{"f"{self.name}""(p)="f"{gain_shown}""\\dfrac{"\
+                        return f"{self.name}""(p)="f"{gain_shown}""\\dfrac{"\
                                               f"{strpoly_latex(self.num)}""}{"\
-                                              f"{strpoly_latex(self.den)}""}}"
+                                              f"{strpoly_latex(self.den)}""}"
             case "moduledB" :
                 num,den="",""
                 i,d=self.classe
