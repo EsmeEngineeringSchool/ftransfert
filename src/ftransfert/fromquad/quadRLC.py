@@ -2,6 +2,7 @@ import sys
 import random
 import sympy as sp
 import math
+import hashlib
 from functools                    import reduce
 from ftransfert.common.Ftransfert import Ftransfert
 from ftransfert.common.utils      import nat2dB, rad2deg
@@ -114,9 +115,11 @@ class Quad():
     def gen_symbols(self):
         self.symbolsRLC = SymbolsRLC(self)
     # -----------------------------------------------------------------
-    def get_hash(self):
+    def __hash__(self):
         if self.series == None or self.shunts == None : return 
-        return hash(tuple(self.series+self.shunts))
+        payload = "|".join(self.series) + "||" + "|".join(self.shunts)
+        digest = hashlib.sha256(payload.encode()).digest()
+        return int.from_bytes(digest[:8], byteorder="big", signed=False)
     # -----------------------------------------------------------------
     def get_poly(self):
         num_poly = sp.Poly(sp.expand(self.sp_tfnum), self.symbolsRLC.symbols['p']).all_coeffs()
@@ -210,7 +213,7 @@ class Quad():
                 out[2]+=      f"             {shunt[0]}      {shunt[1]}"
                 out[3]+=      f"             |      |"
                 out[4]+=      f" ----------- * ---- *"
-        return newlines(out+[""])
+        return newlines(out)
     # --------------------------------------------------------------------------
     # tikz Quadripole (tous les composants sont identiques)
     #   * -- SERIE -- * -- * -- SERIE -- * ----- *
@@ -300,7 +303,7 @@ class Quad():
     # -----------------------------------------------------------------
     def genpage(self,page):
         assert len(self.series)==len(self.shunts), f"la taille de series et shunts doit être la même {len(series)} {len(shunts)}"
-        out=[macro("section*",f"Quadripole {composants} {page} {self.get_hash():12x}")]
+        out=[macro("section*",f"Quadripole {composants} {page} {hash(self):12x}")]
         out+=[begin("center")]
         out+=[begin("circuitikz","european resistors,straight voltages")]
         n=len(self.series)
@@ -340,7 +343,7 @@ class Quad():
         return newlines(out)
 
     def standalone(self):
-        out=[macro("documentclass","standalone","border=0.5 pt, convert={outext=.png}",)]
+        out=[macro("documentclass","standalone","border=0.5 pt, convert={density=300,outext=.png}",)]
         out+=[macro("usepackage","circuitikz")]
         out+=[macro("usepackage","pgf")]
         out+=[macro("usepackage","tikz")]
@@ -382,10 +385,10 @@ def gen_main_latex_document(nquad,npages,composants):
         # on veut tester que tous les composants sont bien représentés
         s=set()
         for c in quad.series+quad.shunts: s |= set(c)
-        if quad.get_hash() in deja_fait or len(composants) > len(s) : continue
+        if hash(quad) in deja_fait or len(composants) > len(s) : continue
         # ---------------------------------------------------------------
         #on ajouter à l'ensemble des hash déjà produit
-        deja_fait.add(quad.get_hash())
+        deja_fait.add(hash(quad))
         # ---------------------------------------------------------------
         # on ajoute la page du quadrupole en tikz + formules
         tikz = quad.genpage(page)
