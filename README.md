@@ -22,9 +22,7 @@ temporel et fréquentiel, avec support des diagrammes de Bode, tracés de contou
 
 - **Outils de Visualisation** :
   - Diagrammes de Bode (gain et phase)
-  - Tracés basés sur Matplotlib avec style personnalisable
-  - Flèches directionnelles sur les contours
-  - Support de la comparaison de plusieurs gains
+  - Tracés Matplotlib ou PGF/TikZ avec style personnalisable
 
 ### Représentations mathématiques
 
@@ -39,14 +37,6 @@ temporel et fréquentiel, avec support des diagrammes de Bode, tracés de contou
   - Courbes de réponse exactes (lignes bleues continues)
   - Mise à l'échelle et étiquetage automatiques des axes
   - Dimensions de tracé personnalisables
-
-### Intégration de contours
-
-- **Contours géométriques** :
-  - Contours rectangulaires (sens horaire/anti-horaire)
-  - Contours circulaires avec segments ajustables
-  - Points d'échantillonnage personnalisables
-  - Flèches directionnelles pour visualisation du chemin
 
 ## Installation
 
@@ -80,37 +70,24 @@ H = Ftransfert(num=num, den=den, gain=1, name="H")
 ### Générer un diagramme de Bode
 
 ```python
-from ftransfert.plot import bode
+from ftransfert.bode.plot import bode as bodeplot
 
 # Créer un diagramme de Bode
-bode(H, xlim=(1e-2, 1e2), y1lim=(-40, 20), y2lim=(-180, 0))
+bodeplot(H, xlim=(1e-2, 1e2), y1lim=(-40, 20), y2lim=(-180, 0))
 ```
 
 ### Exporter vers LaTeX/TikZ
 
 ```python
-from ftransfert.tikz import bode as bode_tikz
+from ftransfert.bode.tikz import bode as bodetikz
 
 # Générer un document LaTeX avec diagrammes de Bode
-bode_tikz(H, filename="sortie.tex", 
+bodetikz(H, filename="sortie.tex", 
           xlim=(1e-2, 1e2), 
           y1lim=(-40, 40), 
           y2lim=(-90, 90))
 ```
 
-### Créer des tracés de contours
-
-```python
-from ftransfert.contour import rectangle, circle, plot_contour
-
-# Contour rectangulaire
-C = rectangle(a=(-1.5, -1), b=(0.25, 1), npts=128)
-plot_contour(C, xlim=(-2, 1), ylim=(-2, 2))
-
-# Contour circulaire
-C = circle(center=(0, 0), radius=0.75, segments=8)
-plot_contour(C, xlim=(-2, 2), ylim=(-2, 2))
-```
 
 ## Classes et méthodes principales
 
@@ -131,18 +108,6 @@ plot_contour(C, xlim=(-2, 2), ylim=(-2, 2))
 - `info()` : Afficher les informations de la fonction de transfert
 - `tablatex(**kwargs)` : Générer un tableau LaTeX de valeurs
 
-### Fonctions utilitaires
-
-**Conversions d'unités** (`utils.py`) :
-- `rad2deg(rad)` : Radians vers degrés
-- `deg2rad(deg)` : Degrés vers radians
-- `nat2dB(g)` : Gain naturel vers décibels
-- `dB2nat(dB)` : Décibels vers gain naturel
-
-**Formatage de chaînes** (`string_.py`) :
-- `strroot(roots, latex)` : Formater les racines en chaîne
-- `strpoly(poly, latex)` : Formater le polynôme en chaîne
-
 ## Fonctionnalités avancées
 
 ### Analyse asymptotique
@@ -153,18 +118,6 @@ La bibliothèque calcule automatiquement :
 - La multiplicité des pôles et zéros
 - Le gain statique
 
-### Dépliage de phase
-
-Support du dépliage de phase type MATLAB avec suivi de la surface de Riemann pour une représentation continue de la phase sur plusieurs périodes de 2π.
-
-### Tracés personnalisés
-
-Options de personnalisation étendues :
-- Paramètres DPI
-- Limites d'axes personnalisées
-- Placement des flèches sur les courbes
-- Schémas de couleurs
-- Superposition de plusieurs fonctions de transfert
 
 ## Structure des fichiers
 
@@ -172,12 +125,15 @@ Options de personnalisation étendues :
 ftransfert/
 ├── common/
 │   ├── Ftransfert.py    # Classe principale de fonction de transfert
-│   ├── plot.py          # Fonctions de tracé Matplotlib
-│   ├── tikz.py          # Génération LaTeX/TikZ
 │   ├── contour.py       # Outils d'intégration de contours
 │   ├── utils.py         # Fonctions utilitaires
 │   ├── string_.py       # Formatage de chaînes
 │   └── latex.py         # Assistants LaTeX
+├── bode/
+│   ├── plot.py          # Fonctions de tracé Matplotlib
+│   ├── tikz.py          # Génération LaTeX/TikZ
+├── fromquad/
+│   ├── quadRLC.py       # Représentation d'un quadripole linéaire et calcul de la fonction de transfert associée 
 ```
 
 ## Prérequis
