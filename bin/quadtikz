@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+import os
+import argparse
+import subprocess
+import hashlib
+from ftransfert.fromquad.quadRLC import Quad 
+
+def parser():
+    parser = argparse.ArgumentParser(description="Génération d'un quadripôle et compilation LaTeX")
+    parser.add_argument("-N", "--nquad",type=int,required=True,help="Nombre de quadripôles")
+    parser.add_argument("-s", "--size",type=int,required=True,help="Taille du quadripôles")
+    parser.add_argument("-c", "--components",choices=["LC", "RL", "RC", "RLC"],required=True,help="Type de composants")
+    parser.add_argument("--outdir",default=".",help="Répertoire de sortie")
+    return parser.parse_args()
+
+def get_filename(h,ext):
+    return hashlib.sha256(h.to_bytes(8,"big",signed=True)).hexdigest()[:16]+ext
+
+if __name__=="__main__":
+    import random
+    args = parser()
+    deja_fait=set()
+    counter=0
+    iteration=0
+    maxiteration=5*args.nquad
+    while counter < args.nquad and iteration < maxiteration :
+        quad=Quad(args.size,args.components)
+        quad.random()
+        iteration+=1
+        h=hash(quad)
+        texfilename=get_filename(h,".tex")
+        pngfilename=get_filename(h,".png")
+        s=set()
+        for c in quad.series+quad.shunts: s |= set(c)
+        if h in deja_fait                : print(f"    ->{pngfilename} already done this run ({iteration})")
+        if len(args.components) > len(s) : print(f"    ->{pngfilename} not enough components ({iteration})") 
+        if os.path.isfile(pngfilename)   : print(f"    ->{pngfilename} already exists ({iteration})")
+        if h in deja_fait or os.path.isfile(pngfilename) or len(args.components) > len(s):  continue
+        #on ajouter à l'ensemble des hash déjà produit
+        deja_fait.add(h)
+        iteration=0
+        with open(texfilename,"w") as f :
+            print(quad.standalone(),file=f)
+        subprocess.run(
+            ["pdflatex", "-shell-escape", texfilename],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL)
+        counter+=1
+        print(f"{pngfilename} ({counter})")
+

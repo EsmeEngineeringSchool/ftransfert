@@ -3,16 +3,16 @@ from ftransfert.bode.tikz import bode as bodetikz
 from ftransfert.bode.plot import bode as bodeplot
 
 if __name__ == "__main__" :
-    if False :
-        gain=16
-        num=[1,1]
-        den=[0.1,1,0,0]
+    if True :
+        gain=1/9
+        num=[1,0,0]
+        den=[1/3,1+1/3,1]
         H=Ftransfert(num=num,den=den,gain=gain,name="H")
         H.info()
         filename="exercice1_1.tex"
         bodetikz(H,filename,xlim=(1e-1,1e2),y1lim=(-40,40),y2lim=(-180,-90))
         bodeplot(H,fmax=1e6,xlim=(1e-1,1e2),y1lim=(-40,40),y2lim=(-180,-90))
-    if True :
+    if False :
         gain=40
         zeros=[(-1,0)]
         poles=[(0,0),(0,0),(-10,0)]
